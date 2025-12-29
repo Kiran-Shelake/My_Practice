@@ -10,8 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "data_a8f8fb37-2905-4135-95bc-bda581e94cc2_13d1c2f2-31a9-4dcc-987f-e2e609229ac1.txt",
-				"folderPath": "azure-practice-results",
+				"fileName": "aaa5e4e6-aad2-48a0-bceb-c2592fcc07d1.csv",
+				"folderPath": "azure-practice-folder/252f7a6f-cfe5-41dd-8f03-0e603c64b281",
 				"fileSystem": "azure-practice-container"
 			},
 			"columnDelimiter": ",",
