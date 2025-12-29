@@ -125,6 +125,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
+						"fileName": "P1-copyActivity-output",
 						"folderPath": "azure-practice-results",
 						"fileSystem": "azure-practice-container"
 					},
