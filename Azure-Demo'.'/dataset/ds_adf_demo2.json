@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "P1-copyActivity-output",
+				"fileName": "data_a8f8fb37-2905-4135-95bc-bda581e94cc2_13d1c2f2-31a9-4dcc-987f-e2e609229ac1.txt",
 				"folderPath": "azure-practice-results",
 				"fileSystem": "azure-practice-container"
 			},
