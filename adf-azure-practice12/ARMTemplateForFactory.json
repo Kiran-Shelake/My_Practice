@@ -888,7 +888,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipelines": [
 					{
 						"pipelineReference": {
@@ -920,16 +920,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pl-azure-practice')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/selfHosted-IR')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
-			},
-			"dependsOn": []
 		}
 	]
 }
