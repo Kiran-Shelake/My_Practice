@@ -10,8 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "aaa5e4e6-aad2-48a0-bceb-c2592fcc07d1.csv",
-				"folderPath": "azure-practice-folder/252f7a6f-cfe5-41dd-8f03-0e603c64b281",
+				"fileName": "P2_Wait_Activity",
+				"folderPath": "azure-practice-results",
 				"fileSystem": "azure-practice-container"
 			},
 			"columnDelimiter": ",",
