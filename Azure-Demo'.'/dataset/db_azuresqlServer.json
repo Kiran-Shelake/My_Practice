@@ -1,0 +1,59 @@
+{
+	"name": "db_azuresqlServer",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_SQL_db_Server",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SRC_schemaName": {
+				"type": "string"
+			},
+			"SRC_tableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Emp_ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Emp_Name",
+				"type": "varchar"
+			},
+			{
+				"name": "Emp_Deparment",
+				"type": "varchar"
+			},
+			{
+				"name": "Emp_City",
+				"type": "varchar"
+			},
+			{
+				"name": "Emp_Salary",
+				"type": "decimal",
+				"precision": 20,
+				"scale": 2
+			},
+			{
+				"name": "Emp_Phone_No",
+				"type": "bigint",
+				"precision": 19
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SRC_schemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().SRC_tableName",
+				"type": "Expression"
+			}
+		}
+	}
+}
