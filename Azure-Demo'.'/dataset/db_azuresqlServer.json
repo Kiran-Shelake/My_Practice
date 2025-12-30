@@ -5,8 +5,14 @@
 			"referenceName": "ls_SQL_db_Server",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"dbName": "free-sql-db",
-				"ServerName": "mysql-db-server.database.windows.net"
+				"dbName": {
+					"value": "@dataset().SRC_dbName",
+					"type": "Expression"
+				},
+				"ServerName": {
+					"value": "@dataset().SRC_serverName",
+					"type": "Expression"
+				}
 			}
 		},
 		"parameters": {
@@ -14,6 +20,12 @@
 				"type": "string"
 			},
 			"SRC_tableName": {
+				"type": "string"
+			},
+			"SRC_dbName": {
+				"type": "string"
+			},
+			"SRC_serverName": {
 				"type": "string"
 			}
 		},
