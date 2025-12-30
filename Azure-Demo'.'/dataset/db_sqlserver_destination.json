@@ -5,15 +5,27 @@
 			"referenceName": "ls_SQL_db_Server",
 			"type": "LinkedServiceReference",
 			"parameters": {
-				"dbName": "free-sql-db",
-				"ServerName": "mysql-db-server.database.windows.net"
+				"dbName": {
+					"value": "@dataset().TRG_dbName",
+					"type": "Expression"
+				},
+				"ServerName": {
+					"value": "@dataset().TRG_serverName",
+					"type": "Expression"
+				}
 			}
 		},
 		"parameters": {
-			"schemaName": {
+			"TRG_schemaName": {
 				"type": "string"
 			},
-			"tableName": {
+			"TRG_tableName": {
+				"type": "string"
+			},
+			"TRG_dbName": {
+				"type": "string"
+			},
+			"TRG_serverName": {
 				"type": "string"
 			}
 		},
@@ -22,11 +34,11 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": {
-				"value": "@dataset().schemaName",
+				"value": "@dataset().TRG_schemaName",
 				"type": "Expression"
 			},
 			"table": {
-				"value": "@dataset().tableName",
+				"value": "@dataset().TRG_tableName",
 				"type": "Expression"
 			}
 		}
