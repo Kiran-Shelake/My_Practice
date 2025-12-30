@@ -4,7 +4,7 @@
 		"activities": [
 			{
 				"name": "Copy demo 2",
-				"description": "with SQL db-server",
+				"description": "with SQL db-server and Parameters",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -39,7 +39,21 @@
 				"inputs": [
 					{
 						"referenceName": "db_azuresqlServer",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"SRC_schemaName": {
+								"value": "@pipeline().parameters.pl_para_src_schemaName",
+								"type": "Expression"
+							},
+							"SRC_tableName": {
+								"value": "@pipeline().parameters.pl_para_src_tableName",
+								"type": "Expression"
+							},
+							"SRC_dbName": {
+								"value": "@pipeline().parameters.pl_para_src_dbName",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
@@ -50,6 +64,24 @@
 				]
 			}
 		],
+		"parameters": {
+			"pl_para_src_serverName": {
+				"type": "string",
+				"defaultValue": "mysql-db-server.database.windows.net"
+			},
+			"pl_para_src_dbName": {
+				"type": "string",
+				"defaultValue": "free-sql-db"
+			},
+			"pl_para_src_schemaName": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"pl_para_src_tableName": {
+				"type": "string",
+				"defaultValue": "Employee_Info"
+			}
+		},
 		"folder": {
 			"name": "adf-practice"
 		},
