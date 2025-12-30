@@ -1,9 +1,9 @@
 {
-	"name": "pl_Copy_with_SQL_server",
+	"name": "pl_Copy_with_SQL_server_parameter",
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy demo 2",
+				"name": "Copy demo 2 data sqlserver",
 				"description": "with SQL db-server and Parameters",
 				"type": "Copy",
 				"dependsOn": [],
@@ -24,7 +24,9 @@
 					"sink": {
 						"type": "AzureSqlSink",
 						"writeBehavior": "insert",
-						"sqlWriterUseTableLock": false
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
 					"translator": {
@@ -52,6 +54,10 @@
 							"SRC_dbName": {
 								"value": "@pipeline().parameters.pl_para_src_dbName",
 								"type": "Expression"
+							},
+							"SRC_serverName": {
+								"value": "@pipeline().parameters.pl_para_src_serverName",
+								"type": "Expression"
 							}
 						}
 					}
@@ -59,7 +65,25 @@
 				"outputs": [
 					{
 						"referenceName": "db_sqlserver_destination",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"TRG_schemaName": {
+								"value": "@pipeline().parameters.pl_para_trg_schemaName",
+								"type": "Expression"
+							},
+							"TRG_tableName": {
+								"value": "@pipeline().parameters.pl_para_trg_tableName",
+								"type": "Expression"
+							},
+							"TRG_dbName": {
+								"value": "@pipeline().parameters.pl_para_trg_dbName",
+								"type": "Expression"
+							},
+							"TRG_serverName": {
+								"value": "@pipeline().parameters.pl_para_trg_serverName",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
@@ -80,6 +104,22 @@
 			"pl_para_src_tableName": {
 				"type": "string",
 				"defaultValue": "Employee_Info"
+			},
+			"pl_para_trg_serverName": {
+				"type": "string",
+				"defaultValue": "mysql-db-server.database.windows.net"
+			},
+			"pl_para_trg_dbName": {
+				"type": "string",
+				"defaultValue": "free-sql-db"
+			},
+			"pl_para_trg_schemaName": {
+				"type": "string",
+				"defaultValue": "dbo"
+			},
+			"pl_para_trg_tableName": {
+				"type": "string",
+				"defaultValue": "Trg_Employee_Info"
 			}
 		},
 		"folder": {
