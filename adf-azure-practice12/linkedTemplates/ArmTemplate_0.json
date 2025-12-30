@@ -14,6 +14,22 @@
 		"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://saazurepractice12.dfs.core.windows.net/"
+		},
+		"ls_key_Vault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kv-adf-demo12.vault.azure.net/"
+		},
+		"ls_SQL_db_Server_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "@{linkedService().ServerName}"
+		},
+		"ls_SQL_db_Server_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().dbName}"
+		},
+		"ls_SQL_db_Server_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "My_Adim"
 		}
 	},
 	"variables": {
@@ -34,6 +50,29 @@
 						"value": "[parameters('ls_AzureDataLakeStorage1_accountKey')]"
 					}
 				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_key_Vault')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_key_Vault_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/selfHosted-IR')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
 			},
 			"dependsOn": []
 		},
@@ -110,6 +149,43 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_SQL_db_Server')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"dbName": {
+						"type": "string"
+					},
+					"ServerName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_SQL_db_Server_properties_typeProperties_server')]",
+					"database": "[parameters('ls_SQL_db_Server_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_SQL_db_Server_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_Vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "Sct-AdminPass",
+						"secretVersion": "608c7ea9efd949968746f7b0e557d0e9"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_Vault')]"
 			]
 		},
 		{
@@ -543,8 +619,277 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_adf_demo')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adf_demo2')]",
-				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+				"[concat(variables('factoryId'), '/datasets/ds_adf_demo2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/db_azuresqlServer')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": {
+							"value": "@dataset().SRC_dbName",
+							"type": "Expression"
+						},
+						"ServerName": {
+							"value": "@dataset().SRC_serverName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"SRC_schemaName": {
+						"type": "string"
+					},
+					"SRC_tableName": {
+						"type": "string"
+					},
+					"SRC_dbName": {
+						"type": "string"
+					},
+					"SRC_serverName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Emp_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Emp_Name",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_Deparment",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_City",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_Salary",
+						"type": "decimal",
+						"precision": 20,
+						"scale": 2
+					},
+					{
+						"name": "Emp_Phone_No",
+						"type": "bigint",
+						"precision": 19
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SRC_schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().SRC_tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_SQL_db_Server')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/db_sqlserver_destination')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": {
+							"value": "@dataset().TRG_dbName",
+							"type": "Expression"
+						},
+						"ServerName": {
+							"value": "@dataset().TRG_serverName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"TRG_schemaName": {
+						"type": "string"
+					},
+					"TRG_tableName": {
+						"type": "string"
+					},
+					"TRG_dbName": {
+						"type": "string"
+					},
+					"TRG_serverName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().TRG_schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TRG_tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_SQL_db_Server')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Copy_with_SQL_server_parameter')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy demo 2 data sqlserver",
+						"description": "with SQL db-server and Parameters",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "db_azuresqlServer",
+								"type": "DatasetReference",
+								"parameters": {
+									"SRC_schemaName": {
+										"value": "@pipeline().parameters.pl_para_src_schemaName",
+										"type": "Expression"
+									},
+									"SRC_tableName": {
+										"value": "@pipeline().parameters.pl_para_src_tableName",
+										"type": "Expression"
+									},
+									"SRC_dbName": {
+										"value": "@pipeline().parameters.pl_para_src_dbName",
+										"type": "Expression"
+									},
+									"SRC_serverName": {
+										"value": "@pipeline().parameters.pl_para_src_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "db_sqlserver_destination",
+								"type": "DatasetReference",
+								"parameters": {
+									"TRG_schemaName": {
+										"value": "@pipeline().parameters.pl_para_trg_schemaName",
+										"type": "Expression"
+									},
+									"TRG_tableName": {
+										"value": "@pipeline().parameters.pl_para_trg_tableName",
+										"type": "Expression"
+									},
+									"TRG_dbName": {
+										"value": "@pipeline().parameters.pl_para_trg_dbName",
+										"type": "Expression"
+									},
+									"TRG_serverName": {
+										"value": "@pipeline().parameters.pl_para_trg_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_para_src_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_src_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_src_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_src_tableName": {
+						"type": "string",
+						"defaultValue": "Employee_Info"
+					},
+					"pl_para_trg_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_trg_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_trg_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_trg_tableName": {
+						"type": "string",
+						"defaultValue": "Trg_Employee_Info"
+					}
+				},
+				"folder": {
+					"name": "adf-practice"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/db_azuresqlServer')]",
+				"[concat(variables('factoryId'), '/datasets/db_sqlserver_destination')]"
 			]
 		},
 		{

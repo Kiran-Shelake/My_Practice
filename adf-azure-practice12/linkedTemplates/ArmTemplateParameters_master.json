@@ -11,6 +11,18 @@
 		"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 			"value": "https://saazurepractice12.dfs.core.windows.net/"
 		},
+		"ls_SQL_db_Server_properties_typeProperties_server": {
+			"value": "@{linkedService().ServerName}"
+		},
+		"ls_SQL_db_Server_properties_typeProperties_database": {
+			"value": "@{linkedService().dbName}"
+		},
+		"ls_SQL_db_Server_properties_typeProperties_userName": {
+			"value": "My_Adim"
+		},
+		"ls_key_Vault_properties_typeProperties_baseUrl": {
+			"value": "https://kv-adf-demo12.vault.azure.net/"
+		},
 		"containerUri": {
 			"value": ""
 		},
