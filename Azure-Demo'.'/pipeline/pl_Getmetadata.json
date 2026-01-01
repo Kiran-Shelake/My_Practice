@@ -128,7 +128,7 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "ds_adf_demo2",
+									"referenceName": "datademo",
 									"type": "DatasetReference"
 								}
 							],
