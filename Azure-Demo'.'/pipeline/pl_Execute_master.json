@@ -1,0 +1,27 @@
+{
+	"name": "pl_Execute_master",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute_demo",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_Copy_with_SQL_server_parameter",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "adf-practice"
+		},
+		"annotations": []
+	}
+}
