@@ -1,0 +1,41 @@
+{
+	"name": "pl_Filter_Demo",
+	"properties": {
+		"activities": [
+			{
+				"name": "Filter_demo",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.NumberList",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@greater(item(),3)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"NumberList": {
+				"type": "array",
+				"defaultValue": [
+					1,
+					2,
+					3,
+					4,
+					5,
+					6,
+					7
+				]
+			}
+		},
+		"folder": {
+			"name": "adf-practice"
+		},
+		"annotations": []
+	}
+}
