@@ -24,6 +24,15 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"modifiedDatetimeStart": {
+							"value": "@getPastTime(24,'hour')",
+							"type": "Expression"
+						},
+						"modifiedDatetimeEnd": {
+							"value": "@utcNow()",
+							"type": "Expression"
+						},
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -45,7 +54,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Get Metadata_demo').output.itemName",
+						"value": "@activity('Get Metadata_demo').output.childItems",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -55,19 +64,41 @@
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
-								"timeout": "0.12:00:00",
+								"timeout": "0.00:10:00",
 								"retry": 0,
 								"retryIntervalInSeconds": 30,
 								"secureOutput": false,
 								"secureInput": false
 							},
-							"userProperties": [],
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "azure-practice-container/Input_New_data/"
+								},
+								{
+									"name": "Destination",
+									"value": "datademo.@{split(item().name,'.')[0]}"
+								}
+							],
 							"typeProperties": {
 								"source": {
 									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "LoadDate",
+											"value": {
+												"value": "@utcNow()",
+												"type": "Expression"
+											}
+										}
+									],
 									"storeSettings": {
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
+										"wildcardFileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										},
 										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
@@ -75,15 +106,15 @@
 									}
 								},
 								"sink": {
-									"type": "DelimitedTextSink",
-									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "@(concat(\"DROP TABLE IF EXISTS dbo.\",split(item().name,'.')[0]))",
+										"type": "Expression"
 									},
-									"formatSettings": {
-										"type": "DelimitedTextWriteSettings",
-										"quoteAllText": true,
-										"fileExtension": ".txt"
-									}
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
 								},
 								"enableStaging": false,
 								"translator": {
@@ -103,8 +134,14 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "ds_adf_demo",
-									"type": "DatasetReference"
+									"referenceName": "AzureSqlTable1",
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": {
+											"value": "@split(item().name,'.')[0]",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
