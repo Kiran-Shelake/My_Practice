@@ -1,0 +1,9 @@
+{
+	"name": "pl_scenario1_load_active_data",
+	"properties": {
+		"folder": {
+			"name": "adf-practice"
+		},
+		"annotations": []
+	}
+}
