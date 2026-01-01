@@ -5,13 +5,21 @@
 			"referenceName": "ls_AzureDataLakeStorage1",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "1bc83b94-8a6f-4323-8435-a17964042589.csv",
-				"folderPath": "azure-practice-folder/c3fe1171-33ab-4561-bb3c-21cd0aef5fae",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": "azure-practice-folder",
 				"fileSystem": "azure-practice-container"
 			},
 			"columnDelimiter": ",",
