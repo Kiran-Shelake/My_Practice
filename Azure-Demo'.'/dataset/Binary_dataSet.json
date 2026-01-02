@@ -1,0 +1,19 @@
+{
+	"name": "Binary_dataSet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "olist_customers_dataset.csv",
+				"folderPath": "Input_New_data",
+				"fileSystem": "azure-practice-container"
+			}
+		}
+	}
+}
