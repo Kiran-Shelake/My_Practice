@@ -14,7 +14,7 @@
 					},
 					"ifFalseActivities": [
 						{
-							"name": "Copy data_Flase",
+							"name": "Copy data_If Flase",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
