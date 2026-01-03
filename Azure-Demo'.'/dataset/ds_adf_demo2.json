@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "Input_New_data",
+				"folderPath": "output_results",
 				"fileSystem": "azure-practice-container"
 			},
 			"columnDelimiter": ",",

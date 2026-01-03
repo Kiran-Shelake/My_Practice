@@ -13,20 +13,41 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "datademo",
+						"referenceName": "ds_adf_demo",
 						"type": "DatasetReference"
 					},
 					"name": "DepartmentData"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkOutputData"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joinEmpDepData"
 				}
 			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          EMPLOYEE_ID as short,",
+				"          FIRST_NAME as string,",
+				"          LAST_NAME as string,",
+				"          EMAIL as string,",
+				"          PHONE_NUMBER as string,",
+				"          HIRE_DATE as string,",
+				"          JOB_ID as string,",
+				"          SALARY as short,",
+				"          COMMISSION_PCT as string,",
+				"          MANAGER_ID as string,",
+				"          DEPARTMENT_ID as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     multiLineRow: true,",
@@ -41,11 +62,22 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     partitionBy('hash', 1)) ~> DepartmentData",
-				"EmployeeData, DepartmentData join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"EmployeeData, DepartmentData join(EmployeeData@DEPARTMENT_ID == DepartmentData@DEPARTMENT_ID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> joinEmpDepData"
+				"     partitionBy('hash', 1),",
+				"     broadcast: 'auto')~> joinEmpDepData",
+				"joinEmpDepData sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['JoinEmployeeDepData.csv'],",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkOutputData"
 			]
 		}
 	}
