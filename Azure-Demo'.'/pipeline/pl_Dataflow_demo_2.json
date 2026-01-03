@@ -3,11 +3,11 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "Dataflow_demo2",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
-					"timeout": "0.12:00:00",
+					"timeout": "0.00:10:00",
 					"retry": 0,
 					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
@@ -15,11 +15,15 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "dataflow_filter",
+						"type": "DataFlowReference"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
 					},
-					"traceLevel": "Fine"
+					"traceLevel": "Coarse"
 				}
 			}
 		],
