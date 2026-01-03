@@ -108,7 +108,7 @@
 								"sink": {
 									"type": "AzureSqlSink",
 									"preCopyScript": {
-										"value": "@(concat(\"DROP TABLE IF EXISTS dbo.\",split(item().name,'.')[0]))",
+										"value": "@(concat('DROP TABLE IF EXISTS dbo.',split(item().name,'.')[0]))",
 										"type": "Expression"
 									},
 									"writeBehavior": "insert",
