@@ -10,7 +10,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "olist_customers_dataset.csv",
+				"fileName": "employees.csv",
 				"folderPath": "Input_New_data",
 				"fileSystem": "azure-practice-container"
 			}

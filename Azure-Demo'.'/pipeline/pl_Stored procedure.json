@@ -1,0 +1,45 @@
+{
+	"name": "pl_Stored procedure",
+	"properties": {
+		"activities": [
+			{
+				"name": "Stored procedure_demo",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[InsertStudent]",
+					"storedProcedureParameters": {
+						"Course": {
+							"value": "Python",
+							"type": "String"
+						},
+						"StudentName": {
+							"value": "Vijay",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": "free-sql-db",
+						"ServerName": "mysql-db-server.database.windows.net"
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "adf-practice"
+		},
+		"annotations": []
+	}
+}
