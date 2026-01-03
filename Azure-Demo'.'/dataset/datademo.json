@@ -10,8 +10,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "departments.csv",
-				"folderPath": "Input_New_data",
+				"fileName": "employees.csv",
+				"folderPath": "azure-practice-folder",
 				"fileSystem": "azure-practice-container"
 			},
 			"columnDelimiter": ",",
