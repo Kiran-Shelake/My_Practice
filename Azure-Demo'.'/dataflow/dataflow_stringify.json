@@ -1,0 +1,38 @@
+{
+	"name": "dataflow_stringify",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_Json",
+						"type": "DatasetReference"
+					},
+					"name": "source"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "stringifydemo"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Text1 as string,",
+				"          Text2 as string,",
+				"          Num1 as double,",
+				"          Array1 as integer[]",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine',",
+				"     partitionBy('hash', 1)) ~> source",
+				"source stringify(Text1 = ERROR_FUNCTION('') ? string,",
+				"     format: 'json') ~> stringifydemo"
+			]
+		}
+	}
+}
