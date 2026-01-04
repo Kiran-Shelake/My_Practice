@@ -1,0 +1,112 @@
+{
+	"name": "dataflow_conditional_split_CaseStatement",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "datademo",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkHRDepart"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkITDepart"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkShippingDepart"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sinkOtherDepart"
+				}
+			],
+			"transformations": [
+				{
+					"name": "splitHRDepartment"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EMPLOYEE_ID as short,",
+				"          FIRST_NAME as string,",
+				"          LAST_NAME as string,",
+				"          EMAIL as string,",
+				"          PHONE_NUMBER as string,",
+				"          HIRE_DATE as string,",
+				"          JOB_ID as string,",
+				"          SALARY as short,",
+				"          COMMISSION_PCT as string,",
+				"          MANAGER_ID as string,",
+				"          DEPARTMENT_ID as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     partitionBy('hash', 1)) ~> source1",
+				"source1 split(equals(DEPARTMENT_ID,40),",
+				"     equals(DEPARTMENT_ID, 60),",
+				"     equals(DEPARTMENT_ID, 50),",
+				"     disjoint: false,",
+				"     partitionBy('hash', 1)) ~> splitHRDepartment@(HRDepartment, ITDepartment, ShippingDepartment, Others)",
+				"splitHRDepartment@HRDepartment sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Dataflow_split_HR_Department_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkHRDepart",
+				"splitHRDepartment@ITDepartment sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Dataflow_split_IT_Department_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkITDepart",
+				"splitHRDepartment@ShippingDepartment sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Dataflow_split_Shipping_Department_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkShippingDepart",
+				"splitHRDepartment@Others sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Dataflow_split_Other_Departments_data.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkOtherDepart"
+			]
+		}
+	}
+}
