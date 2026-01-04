@@ -1,5 +1,5 @@
 {
-	"name": "dataflow_with_flowlet_demo",
+	"name": "dataflow_with_flowlet_demo2",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -32,7 +32,7 @@
 			],
 			"scriptLines": [
 				"source(output(",
-				"          EMPLOYEE_ID as short,",
+				"          EMPLOYEE_ID as string,",
 				"          FIRST_NAME as string,",
 				"          LAST_NAME as string,",
 				"          EMAIL as string,",
@@ -49,10 +49,10 @@
 				"     ignoreNoFilesFound: false,",
 				"     partitionBy('hash', 1)) ~> inputsource",
 				"inputsource compose(mapColumn(",
-				"          {DEPARTMENT ID} = EMPLOYEE_ID",
+				"          {DEPARTMENT ID} = DEPARTMENT_ID",
 				"     ),",
-				"     composition: 'flowlet_demo') ~> flowlet@(flowletoutput)",
-				"flowlet@flowletoutput sink(allowSchemaDrift: true,",
+				"     composition: 'flowlet_demo') ~> flowlet@()",
+				"flowlet sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     partitionFileNames:['Flowlet_demo_output'],",
 				"     umask: 0022,",
