@@ -1,0 +1,39 @@
+{
+	"name": "ds_Json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "JSON_example.json",
+				"folderPath": "azure-practice-folder",
+				"fileSystem": "azure-practice-container"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"Text1": {
+					"type": "string"
+				},
+				"Text2": {
+					"type": "string"
+				},
+				"Num1": {
+					"type": "number"
+				},
+				"Array1": {
+					"type": "array",
+					"items": {
+						"type": "integer"
+					}
+				}
+			}
+		}
+	}
+}
