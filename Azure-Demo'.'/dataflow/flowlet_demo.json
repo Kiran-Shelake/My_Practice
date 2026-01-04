@@ -18,16 +18,18 @@
 			],
 			"scriptLines": [
 				"input(output(",
-				"          DEPARTMENT_ID as string",
+				"          DEPARTMENT_ID as string,",
+				"          CUSTOMER_STATE as string",
 				"     ),",
 				"     order: 0,",
 				"     allowSchemaDrift: true) ~> flowletinput",
-				"flowletinput aggregate(groupBy(DEPARTMENT_ID),",
+				"flowletinput aggregate(groupBy(DEPARTMENT_ID,",
+				"          CUSTOMER_STATE),",
 				"     COUNT = count(),",
 				"     partitionBy('hash', 1)) ~> aggGroupByCount",
 				"aggGroupByCount output(mapColumn(",
-				"          DEPARTMENT_ID,",
-				"          COUNT",
+				"          each(match(/* All input columns */ true()),",
+				"               /* Input name */ $$ = $$)",
 				"     )) ~> flowletoutput"
 			]
 		}
