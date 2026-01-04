@@ -1,0 +1,67 @@
+{
+	"name": "dataflow_with_flowlet_demo",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "datademo",
+						"type": "DatasetReference"
+					},
+					"name": "inputsource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "flowletSinkOutput"
+				}
+			],
+			"transformations": [
+				{
+					"name": "flowlet",
+					"flowlet": {
+						"referenceName": "flowlet_demo",
+						"type": "DataFlowReference"
+					}
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EMPLOYEE_ID as short,",
+				"          FIRST_NAME as string,",
+				"          LAST_NAME as string,",
+				"          EMAIL as string,",
+				"          PHONE_NUMBER as string,",
+				"          HIRE_DATE as string,",
+				"          JOB_ID as string,",
+				"          SALARY as short,",
+				"          COMMISSION_PCT as string,",
+				"          MANAGER_ID as string,",
+				"          DEPARTMENT_ID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     partitionBy('hash', 1)) ~> inputsource",
+				"inputsource compose(mapColumn(",
+				"          DEPARTMENT_ID",
+				"     ),",
+				"     composition: 'flowlet_demo') ~> flowlet@(flowletoutput)",
+				"flowlet@flowletoutput sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Flowlet_demo_output'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> flowletSinkOutput"
+			]
+		}
+	}
+}
