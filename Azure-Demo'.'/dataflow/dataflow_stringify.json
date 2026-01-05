@@ -12,26 +12,52 @@
 					"name": "source"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_adf_demo2",
+						"type": "DatasetReference"
+					},
+					"name": "sink"
+				}
+			],
 			"transformations": [
 				{
 					"name": "stringifydemo"
+				},
+				{
+					"name": "derivedColumn"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          Text1 as string,",
-				"          Text2 as string,",
-				"          Num1 as double,",
-				"          Array1 as integer[]",
+				"          Skills as string[],",
+				"          contact as (landline as short, mobile as short),",
+				"          name as string",
 				"     ),",
 				"     allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     documentForm: 'documentPerLine',",
 				"     partitionBy('hash', 1)) ~> source",
-				"source stringify(Text1 = ERROR_FUNCTION('') ? string,",
-				"     format: 'json') ~> stringifydemo"
+				"source stringify(ContactStringify = contact ? string,",
+				"     partitionBy('hash', 1),",
+				"     format: 'json') ~> stringifydemo",
+				"stringifydemo derive(ContactStringify = toString(ContactStringify),",
+				"     partitionBy('hash', 1)) ~> derivedColumn",
+				"derivedColumn sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Stringifydemo.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          name,",
+				"          contact = ContactStringify",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> sink"
 			]
 		}
 	}
