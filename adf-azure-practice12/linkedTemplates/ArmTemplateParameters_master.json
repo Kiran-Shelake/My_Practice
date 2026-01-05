@@ -5,8 +5,20 @@
 		"factoryName": {
 			"value": "adf-azure-practice12"
 		},
+		"AzureSqlDatabase1_password": {
+			"value": ""
+		},
 		"ls_AzureDataLakeStorage1_accountKey": {
 			"value": ""
+		},
+		"AzureSqlDatabase1_properties_typeProperties_server": {
+			"value": "mysql-db-server.database.windows.net"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_database": {
+			"value": "free-sql-db"
+		},
+		"AzureSqlDatabase1_properties_typeProperties_userName": {
+			"value": "My_Adim"
 		},
 		"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 			"value": "https://saazurepractice12.dfs.core.windows.net/"
