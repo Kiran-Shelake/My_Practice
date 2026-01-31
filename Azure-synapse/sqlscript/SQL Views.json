@@ -1,0 +1,17 @@
+{
+	"name": "SQL Views",
+	"properties": {
+		"content": {
+			"query": "--Create Views on External tables\n\n--CSV\n\nCREATE VIEW dbo.vw_ElectricVehicle\nAS\nSELECT *\nFROM dbo.ElectricVehicle_Ext_table;\n\nSELECT * FROM vw_ElectricVehicle\n\n--Parquet\n\nCREATE VIEW dbo.vw_CovidTracking_Ext\nAS\nSELECT *\nFROM dbo.CovidTracking_Ext_table;\n\nSELECT * FROM dbo.vw_CovidTracking_Ext;\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "DemoServerLess",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
