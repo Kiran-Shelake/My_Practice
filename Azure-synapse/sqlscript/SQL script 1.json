@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 1",
+	"properties": {
+		"content": {
+			"query": "--Create a Master Key for encryption \n\nCREATE MASTER KEY  ENCRYPTION BY PASSWORD = 'Password@123';\n\n--Create Credintial\nCREATE DATABASE SCOPED CREDENTIAL SynapseCreds\nWITH \nIDENTITY = 'Managed Identity';\n\n--Create an external data source\nCREATE EXTERNAL DATA SOURCE Raw_Ext_Source \nWITH\n(\n    LOCATION = 'https://saazsynapsepract.blob.core.windows.net/externaldatasource/inputdata',\n    CREDENTIAL = SynapseCreds\n);\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "DemoServerLess",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
