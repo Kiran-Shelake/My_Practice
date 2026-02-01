@@ -1,0 +1,17 @@
+{
+	"name": "SQL_Union_Joins",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL TABLE ElectricVehicle_Ext_table_2(\n    [VIN (1-10)] VARCHAR(100),\n    County VARCHAR(100),\n    City VARCHAR(100),\n    State VARCHAR(50),\n    [Postal Code] VARCHAR(20),\n    [Model Year] INT,\n    Make VARCHAR(100),\n    Model VARCHAR(100),\n    [Electric Vehicle Type] VARCHAR(100),\n    [Clean Alternative Fuel Vehicle (CAFV) Eligibility] VARCHAR(100),\n    [Electric Range] INT,\n    [Base MSRP] INT,\n    [Legislative District] VARCHAR(50),\n    [DOL Vehicle ID] VARCHAR(100),\n    [Vehicle Location] VARCHAR(200),\n    [Electric Utility] VARCHAR(200),\n    [2020 Census Tract] VARCHAR(100)\n)\nWITH (\n    LOCATION = '/Electric_Vehicle_Population_Data_1.csv',\n    DATA_SOURCE = Raw_Ext_Source,\n    FILE_FORMAT = CSV_Format\n);\n\n--Union\n\nCREATE VIEW vw_ElectricVehi_Ext_union\nAS\nSELECT * FROM dbo.ElectricVehicle_Ext_table\nUNION\nSELECT * FROM dbo.ElectricVehicle_Ext_table_2;\nGO\n\nSelect * FROM dbo.vw_ElectricVehi_Ext_union;\n\n-----------------------------------------------------------\n\nCREATE EXTERNAL TABLE dbo.GreenHouseEmission_Ext_table\n(\n    [2017 NAICS Code] NVARCHAR(50),\n    [2017 NAICS Title] NVARCHAR(200),\n    [GHG] FLOAT,\n    [Unit] NVARCHAR(50),\n    [Supply Chain Emission Factors without Margins] FLOAT,\n    [Margins of Supply Chain Emission Factors] FLOAT,\n    [Supply Chain Emission Factors with Margins] FLOAT,\n    [Reference USEEIO Code] NVARCHAR(100)\n)\nWITH (\n    LOCATION = '/GreenHouseEmssion.csv',\n    DATA_SOURCE = Raw_Ext_Source,\n    FILE_FORMAT = CSV_Format\n);\n\nselect * FROM dbo.GreenHouseEmission_Ext_table;\n\n--Croos Join, since no common column exist\n\nCREATE VIEW dbo.vw_ElectricVehicle_GreenHouse_CrosJn\nAS\nSELECT \n    ele.*,\n    ghe.*\nFROM dbo.ElectricVehicle_Ext_table ele\nCROSS JOIN dbo.GreenHouseEmission_Ext_table ghe;\nGO\n\nSELECT TOP 100 * FROM dbo.vw_ElectricVehicle_GreenHouse_CrosJn;\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "DemoServerLess",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
