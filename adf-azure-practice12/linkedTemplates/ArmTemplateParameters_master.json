@@ -23,6 +23,9 @@
 		"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 			"value": "https://saazurepractice12.dfs.core.windows.net/"
 		},
+		"ls_SASToken_AzureBlobStorage_sasUri": {
+			"value": ""
+		},
 		"ls_SQL_db_Server_properties_typeProperties_server": {
 			"value": "@{linkedService().ServerName}"
 		},

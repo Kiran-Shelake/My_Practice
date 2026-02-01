@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://saazurepractice12.dfs.core.windows.net/"
 		},
+		"ls_SASToken_AzureBlobStorage_sasUri": {
+			"type": "secureString",
+			"metadata": "Secure string for 'sasUri' of 'ls_SASToken_AzureBlobStorage'"
+		},
 		"ls_SQL_db_Server_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "@{linkedService().ServerName}"
@@ -91,6 +95,9 @@
 					},
 					"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 						"value": "[parameters('ls_AzureDataLakeStorage1_properties_typeProperties_url')]"
+					},
+					"ls_SASToken_AzureBlobStorage_sasUri": {
+						"value": "[parameters('ls_SASToken_AzureBlobStorage_sasUri')]"
 					},
 					"ls_key_Vault_properties_typeProperties_baseUrl": {
 						"value": "[parameters('ls_key_Vault_properties_typeProperties_baseUrl')]"
