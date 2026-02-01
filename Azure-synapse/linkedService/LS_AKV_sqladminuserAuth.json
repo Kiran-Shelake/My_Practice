@@ -1,0 +1,10 @@
+{
+	"name": "LS_AKV_sqladminuserAuth",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-sqladminuserAuth.vault.azure.net/"
+		}
+	}
+}
