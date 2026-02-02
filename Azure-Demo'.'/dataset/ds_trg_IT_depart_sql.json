@@ -1,0 +1,33 @@
+{
+	"name": "ds_trg_IT_depart_sql",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "DEPARTMENT_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "DEPARTMENT_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "MANAGER_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "LOCATION_ID",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Target_IT_department"
+		}
+	}
+}
