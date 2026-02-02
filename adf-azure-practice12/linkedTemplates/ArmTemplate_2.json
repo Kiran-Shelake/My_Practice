@@ -13,13 +13,543 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_Q23_empty_copy_sql')]",
+			"name": "[concat(parameters('factoryName'), '/db_azuresqlServer')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": {
+							"value": "@dataset().SRC_dbName",
+							"type": "Expression"
+						},
+						"ServerName": {
+							"value": "@dataset().SRC_serverName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"SRC_schemaName": {
+						"type": "string"
+					},
+					"SRC_tableName": {
+						"type": "string"
+					},
+					"SRC_dbName": {
+						"type": "string"
+					},
+					"SRC_serverName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "Emp_ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Emp_Name",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_Deparment",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_City",
+						"type": "varchar"
+					},
+					{
+						"name": "Emp_Salary",
+						"type": "decimal",
+						"precision": 20,
+						"scale": 2
+					},
+					{
+						"name": "Emp_Phone_No",
+						"type": "bigint",
+						"precision": 19
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SRC_schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().SRC_tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/db_sqlserver_destination')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": {
+							"value": "@dataset().TRG_dbName",
+							"type": "Expression"
+						},
+						"ServerName": {
+							"value": "@dataset().TRG_serverName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"TRG_schemaName": {
+						"type": "string"
+					},
+					"TRG_tableName": {
+						"type": "string"
+					},
+					"TRG_dbName": {
+						"type": "string"
+					},
+					"TRG_serverName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().TRG_schemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TRG_tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_conditional_split_CaseStatement')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "datademo",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkHRDepart"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkITDepart"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkShippingDepart"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkOtherDepart"
+						}
+					],
+					"transformations": [
+						{
+							"name": "splitHRDepartment"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EMPLOYEE_ID as short,",
+						"          FIRST_NAME as string,",
+						"          LAST_NAME as string,",
+						"          EMAIL as string,",
+						"          PHONE_NUMBER as string,",
+						"          HIRE_DATE as string,",
+						"          JOB_ID as string,",
+						"          SALARY as short,",
+						"          COMMISSION_PCT as string,",
+						"          MANAGER_ID as string,",
+						"          DEPARTMENT_ID as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     partitionBy('hash', 1)) ~> source1",
+						"source1 split(equals(DEPARTMENT_ID,40),",
+						"     equals(DEPARTMENT_ID, 60),",
+						"     equals(DEPARTMENT_ID, 50),",
+						"     disjoint: false,",
+						"     partitionBy('hash', 1)) ~> splitHRDepartment@(HRDepartment, ITDepartment, ShippingDepartment, Others)",
+						"splitHRDepartment@HRDepartment sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Dataflow_split_HR_Department_data.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkHRDepart",
+						"splitHRDepartment@ITDepartment sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Dataflow_split_IT_Department_data.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkITDepart",
+						"splitHRDepartment@ShippingDepartment sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Dataflow_split_Shipping_Department_data.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkShippingDepart",
+						"splitHRDepartment@Others sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Dataflow_split_Other_Departments_data.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkOtherDepart"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_demo')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "datademo",
+								"type": "DatasetReference"
+							},
+							"name": "EmployeeData"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo",
+								"type": "DatasetReference"
+							},
+							"name": "DepartmentData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkOutputData"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinEmpDepData"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EMPLOYEE_ID as short,",
+						"          FIRST_NAME as string,",
+						"          LAST_NAME as string,",
+						"          EMAIL as string,",
+						"          PHONE_NUMBER as string,",
+						"          HIRE_DATE as string,",
+						"          JOB_ID as string,",
+						"          SALARY as short,",
+						"          COMMISSION_PCT as string,",
+						"          MANAGER_ID as string,",
+						"          DEPARTMENT_ID as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     multiLineRow: true,",
+						"     partitionBy('hash', 1)) ~> EmployeeData",
+						"source(output(",
+						"          DEPARTMENT_ID as short,",
+						"          DEPARTMENT_NAME as string,",
+						"          MANAGER_ID as string,",
+						"          LOCATION_ID as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     partitionBy('hash', 1)) ~> DepartmentData",
+						"EmployeeData, DepartmentData join(EmployeeData@DEPARTMENT_ID == DepartmentData@DEPARTMENT_ID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     partitionBy('hash', 1),",
+						"     broadcast: 'auto')~> joinEmpDepData",
+						"joinEmpDepData sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['JoinEmployeeDepData.csv'],",
+						"     truncate: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkOutputData"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_filter')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "datademo",
+								"type": "DatasetReference"
+							},
+							"name": "sourceEmp"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sinkResult"
+						}
+					],
+					"transformations": [
+						{
+							"name": "filterDepartment"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EMPLOYEE_ID as short,",
+						"          FIRST_NAME as string,",
+						"          LAST_NAME as string,",
+						"          EMAIL as string,",
+						"          PHONE_NUMBER as string,",
+						"          HIRE_DATE as string,",
+						"          JOB_ID as string,",
+						"          SALARY as short,",
+						"          COMMISSION_PCT as string,",
+						"          MANAGER_ID as string,",
+						"          DEPARTMENT_ID as short",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     partitionBy('hash', 1)) ~> sourceEmp",
+						"sourceEmp filter(equals(DEPARTMENT_ID,60)) ~> filterDepartment",
+						"filterDepartment sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Filter_EmpDepart.csv60'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> sinkResult"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_stringify')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_Json",
+								"type": "DatasetReference"
+							},
+							"name": "source"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "sink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "stringifydemo"
+						},
+						{
+							"name": "derivedColumn"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Skills as string[],",
+						"          contact as (landline as short, mobile as short),",
+						"          name as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     documentForm: 'documentPerLine',",
+						"     partitionBy('hash', 1)) ~> source",
+						"source stringify(ContactStringify = contact ? string,",
+						"     partitionBy('hash', 1),",
+						"     format: 'json') ~> stringifydemo",
+						"stringifydemo derive(ContactStringify = toString(ContactStringify),",
+						"     partitionBy('hash', 1)) ~> derivedColumn",
+						"derivedColumn sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Stringifydemo.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          name,",
+						"          contact = ContactStringify",
+						"     ),",
+						"     partitionBy('hash', 1)) ~> sink"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow_with_flowlet_demo')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "datademo",
+								"type": "DatasetReference"
+							},
+							"name": "inputsource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_adf_demo2",
+								"type": "DatasetReference"
+							},
+							"name": "flowletSinkOutput"
+						}
+					],
+					"transformations": [
+						{
+							"name": "flowlet",
+							"flowlet": {
+								"referenceName": "flowlet_demo",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          EMPLOYEE_ID as short,",
+						"          FIRST_NAME as string,",
+						"          LAST_NAME as string,",
+						"          EMAIL as string,",
+						"          PHONE_NUMBER as string,",
+						"          HIRE_DATE as string,",
+						"          JOB_ID as string,",
+						"          SALARY as short,",
+						"          COMMISSION_PCT as string,",
+						"          MANAGER_ID as string,",
+						"          DEPARTMENT_ID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     partitionBy('hash', 1)) ~> inputsource",
+						"inputsource compose(mapColumn(",
+						"          {DEPARTMENT ID} = EMPLOYEE_ID",
+						"     ),",
+						"     composition: 'flowlet_demo') ~> flowlet@(flowletoutput)",
+						"flowlet@flowletoutput sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['Flowlet_demo_output'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> flowletSinkOutput"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q24_copy_IT_Rec_sqlDB')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy-emptybefore",
+						"name": "Copy_IT_Data",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -33,15 +563,15 @@
 						"typeProperties": {
 							"source": {
 								"type": "AzureSqlSource",
-								"queryTimeout": "00:30:00",
+								"sqlReaderQuery": {
+									"value": "SELECT * FROM dbo.department WHERE DEPARTMENT_NAME = 'IT'",
+									"type": "Expression"
+								},
+								"queryTimeout": "01:00:00",
 								"partitionOption": "None"
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": {
-									"value": "TRUNCATE TABLE dbo.Target_employee;",
-									"type": "Expression"
-								},
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false
 							},
@@ -51,112 +581,24 @@
 								"mappings": [
 									{
 										"source": {
-											"name": "EMPLOYEE_ID",
-											"type": "Int32",
-											"physicalType": "int"
-										},
-										"sink": {
-											"name": "EMPLOYEE_ID",
-											"type": "Int32",
-											"physicalType": "int"
-										}
-									},
-									{
-										"source": {
-											"name": "FIRST_NAME",
+											"name": "DEPARTMENT_ID",
 											"type": "String",
 											"physicalType": "varchar"
 										},
 										"sink": {
-											"name": "FIRST_NAME",
+											"name": "DEPARTMENT_ID",
 											"type": "String",
 											"physicalType": "varchar"
 										}
 									},
 									{
 										"source": {
-											"name": "LAST_NAME",
+											"name": "DEPARTMENT_NAME",
 											"type": "String",
 											"physicalType": "varchar"
 										},
 										"sink": {
-											"name": "LAST_NAME",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "HIRE_DATE",
-											"type": "Date",
-											"physicalType": "date"
-										},
-										"sink": {
-											"name": "HIRE_DATE",
-											"type": "Date",
-											"physicalType": "date"
-										}
-									},
-									{
-										"source": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "SALARY",
-											"type": "Decimal",
-											"physicalType": "decimal",
-											"scale": 0,
-											"precision": 18
-										},
-										"sink": {
-											"name": "SALARY",
-											"type": "Decimal",
-											"physicalType": "decimal",
-											"scale": 0,
-											"precision": 18
-										}
-									},
-									{
-										"source": {
-											"name": "COMMISSION_PCT",
-											"type": "String",
-											"physicalType": "varchar"
-										},
-										"sink": {
-											"name": "COMMISSION_PCT",
+											"name": "DEPARTMENT_NAME",
 											"type": "String",
 											"physicalType": "varchar"
 										}
@@ -164,25 +606,25 @@
 									{
 										"source": {
 											"name": "MANAGER_ID",
-											"type": "Int32",
-											"physicalType": "int"
+											"type": "String",
+											"physicalType": "varchar"
 										},
 										"sink": {
 											"name": "MANAGER_ID",
-											"type": "Int32",
-											"physicalType": "int"
+											"type": "String",
+											"physicalType": "varchar"
 										}
 									},
 									{
 										"source": {
-											"name": "DEPARTMENT_ID",
-											"type": "Int32",
-											"physicalType": "int"
+											"name": "LOCATION_ID",
+											"type": "String",
+											"physicalType": "varchar"
 										},
 										"sink": {
-											"name": "DEPARTMENT_ID",
-											"type": "Int32",
-											"physicalType": "int"
+											"name": "LOCATION_ID",
+											"type": "String",
+											"physicalType": "varchar"
 										}
 									}
 								],
@@ -195,14 +637,14 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "ds_src_employee",
+								"referenceName": "ds_sql_deparment",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "AzureSqlTable2",
+								"referenceName": "ds_trg_IT_depart_sql",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -220,13 +662,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_copy_Csv_Sql')]",
+			"name": "[concat(parameters('factoryName'), '/pl_Q25_copy_join_tables')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy data1",
+						"name": "Copy_Joined_EmpDepart",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -239,160 +681,23 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": false,
-									"enablePartitionDiscovery": false
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT \n    E.EMPLOYEE_ID ,\n    E.FIRST_NAME ,\n    E.LAST_NAME ,\n    E.EMAIL ,\n    E.PHONE_NUMBER ,\n    E.HIRE_DATE ,\n    E.JOB_ID ,\n    E.SALARY ,\n    E.COMMISSION_PCT ,\t\n    D.DEPARTMENT_ID,\n    D.DEPARTMENT_NAME ,\n    D.MANAGER_ID,\t\n    D.LOCATION_ID\nFROM dbo.Employee_Info E \nFULL JOIN dbo.Department D \n    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID\n",
+									"type": "Expression"
 								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
 							},
 							"sink": {
 								"type": "AzureSqlSink",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
 							"translator": {
 								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "EMPLOYEE_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "EMPLOYEE_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "FIRST_NAME",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "FIRST_NAME",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "LAST_NAME",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "LAST_NAME",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "HIRE_DATE",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "HIRE_DATE",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "SALARY",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "SALARY",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "COMMISSION_PCT",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "COMMISSION_PCT",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									},
-									{
-										"source": {
-											"name": "DEPARTMENT_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "DEPARTMENT_ID",
-											"type": "String",
-											"physicalType": "varchar"
-										}
-									}
-								],
 								"typeConversion": true,
 								"typeConversionSettings": {
 									"allowDataTruncation": true,
@@ -402,14 +707,14 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "ds_emlpoyee",
+								"referenceName": "ds_sql_EmpDept_join",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "ds_destination_target",
+								"referenceName": "ds_sql_EmpDepart_FullJoin",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -420,7 +725,7 @@
 					"elapsedTimeMetric": {}
 				},
 				"folder": {
-					"name": "adf-practice"
+					"name": "adf_assignment-3"
 				},
 				"annotations": []
 			},
@@ -560,7 +865,10 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/db_azuresqlServer')]",
+				"[concat(variables('factoryId'), '/datasets/db_sqlserver_destination')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_Copy_with_SQL_server_parameter_precopy_script')]",
@@ -700,7 +1008,10 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/db_azuresqlServer')]",
+				"[concat(variables('factoryId'), '/datasets/db_sqlserver_destination')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_Dataflow_Split_Condition')]",
@@ -750,7 +1061,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_conditional_split_CaseStatement')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_Dataflow_demo_2')]",
@@ -797,7 +1110,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_filter')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_Dataflows_demo')]",
@@ -850,7 +1165,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_demo')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_dataflow_with_flowlet_demo')]",
@@ -897,7 +1214,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_with_flowlet_demo')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_lookup')]",
@@ -944,7 +1263,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/db_azuresqlServer')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_stringify_demo')]",
@@ -991,7 +1312,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow_stringify')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/trigger_demo')]",
