@@ -1,0 +1,31 @@
+{
+	"name": "pl_Q26_procedure_InsertTableCounts",
+	"properties": {
+		"activities": [
+			{
+				"name": "Stored procedure_InsertTableCounts",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.10:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[InsertTableCounts]"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "adf_assignment-3"
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,62 @@
+{
+	"name": "pl_Q25_copy_join_tables",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_Joined_EmpDepart",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.10:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT \n    E.EMPLOYEE_ID ,\n    E.FIRST_NAME ,\n    E.LAST_NAME ,\n    E.EMAIL ,\n    E.PHONE_NUMBER ,\n    E.HIRE_DATE ,\n    E.JOB_ID ,\n    E.SALARY ,\n    E.COMMISSION_PCT ,\t\n    D.DEPARTMENT_ID,\n    D.DEPARTMENT_NAME ,\n    D.MANAGER_ID,\t\n    D.LOCATION_ID\nFROM dbo.Employee_Info E \nFULL JOIN dbo.Department D \n    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID\n",
+							"type": "Expression"
+						},
+						"queryTimeout": "01:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_sql_EmpDept_join",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_sql_EmpDepart_FullJoin",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "adf_assignment-3"
+		},
+		"annotations": []
+	}
+}

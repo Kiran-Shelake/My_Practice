@@ -1,0 +1,74 @@
+{
+	"name": "ds_sql_EmpDepart_FullJoin",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "EMPLOYEE_ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "FIRST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "LAST_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "EMAIL",
+				"type": "varchar"
+			},
+			{
+				"name": "PHONE_NUMBER",
+				"type": "varchar"
+			},
+			{
+				"name": "HIRE_DATE",
+				"type": "date"
+			},
+			{
+				"name": "JOB_ID",
+				"type": "varchar"
+			},
+			{
+				"name": "SALARY",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "COMMISSION_PCT",
+				"type": "varchar"
+			},
+			{
+				"name": "DEPARTMENT_ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DEPARTMENT_NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "MANAGER_ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "LOCATION_ID",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "EmpDepart_FullJoin"
+		}
+	}
+}
