@@ -1,0 +1,21 @@
+{
+	"name": "ds_parquet_covid_tracking",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "covid_tracking.parquet",
+				"folderPath": "azuredataset",
+				"fileSystem": "assignment3"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
