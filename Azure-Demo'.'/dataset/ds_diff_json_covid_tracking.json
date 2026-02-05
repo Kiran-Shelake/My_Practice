@@ -1,0 +1,20 @@
+{
+	"name": "ds_diff_json_covid_tracking",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "covid_tracking.json",
+				"folderPath": "pandemicdata-copyactivity",
+				"fileSystem": "raw"
+			}
+		},
+		"schema": {}
+	}
+}

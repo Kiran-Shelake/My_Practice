@@ -1,0 +1,38 @@
+{
+	"name": "ds_sqlProductModel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProductModelID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CatalogDescription",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Rowguid",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ModifiedDate",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "SalesLT",
+			"table": "ProductModel"
+		}
+	}
+}

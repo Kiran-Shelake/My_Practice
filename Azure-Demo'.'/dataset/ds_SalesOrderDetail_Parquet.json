@@ -1,0 +1,21 @@
+{
+	"name": "ds_SalesOrderDetail_Parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "SalesOrderDetail.parquet",
+				"folderPath": "output1",
+				"fileSystem": "azure-practice-container"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
