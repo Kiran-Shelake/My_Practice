@@ -1,0 +1,27 @@
+{
+	"name": "ds_filename_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "Filename.json",
+				"folderPath": "azuredataset",
+				"fileSystem": "assignment3"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"fileName": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
