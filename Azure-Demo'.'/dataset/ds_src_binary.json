@@ -1,0 +1,27 @@
+{
+	"name": "ds_src_binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ds_filename",
+					"type": "Expression"
+				},
+				"folderPath": "azuredataset",
+				"fileSystem": "assignment3"
+			}
+		}
+	}
+}
