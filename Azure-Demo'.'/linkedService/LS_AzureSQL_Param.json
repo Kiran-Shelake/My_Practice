@@ -25,7 +25,7 @@
 			"trustServerCertificate": false,
 			"authenticationType": "SQL",
 			"userName": "@{linkedService().userName}",
-			"password": "@{linkedService().password}"
+			"password": "@{linkedService().password}\n"
 		}
 	}
 }
