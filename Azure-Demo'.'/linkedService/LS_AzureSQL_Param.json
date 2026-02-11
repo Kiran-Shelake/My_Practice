@@ -13,7 +13,8 @@
 				"type": "string"
 			},
 			"password": {
-				"type": "securestring"
+				"type": "string",
+				"defaultValue": "KAsf*@123"
 			}
 		},
 		"annotations": [],
