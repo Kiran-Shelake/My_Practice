@@ -18,55 +18,6 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": [
-			{
-				"name": "Unique ID",
-				"type": "String"
-			},
-			{
-				"name": "Indicator ID",
-				"type": "String"
-			},
-			{
-				"name": "Name",
-				"type": "String"
-			},
-			{
-				"name": "Measure",
-				"type": "String"
-			},
-			{
-				"name": "Measure Info",
-				"type": "String"
-			},
-			{
-				"name": "Geo Type Name",
-				"type": "String"
-			},
-			{
-				"name": "Geo Join ID",
-				"type": "String"
-			},
-			{
-				"name": "Geo Place Name",
-				"type": "String"
-			},
-			{
-				"name": "Time Period",
-				"type": "String"
-			},
-			{
-				"name": "Start_Date",
-				"type": "String"
-			},
-			{
-				"name": "Data Value",
-				"type": "String"
-			},
-			{
-				"name": "Message",
-				"type": "String"
-			}
-		]
+		"schema": []
 	}
 }
