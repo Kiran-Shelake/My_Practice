@@ -1,0 +1,55 @@
+{
+	"name": "ds_Q4_GreenHouseEmission_Excel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureBlobStorage",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "GreenHouseEmission",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "GreenHouseEmission.xlsx",
+				"folderPath": "azuredataset",
+				"container": "assignment3"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "2017 NAICS Code",
+				"type": "String"
+			},
+			{
+				"name": "2017 NAICS Title",
+				"type": "String"
+			},
+			{
+				"name": "GHG",
+				"type": "String"
+			},
+			{
+				"name": "Unit",
+				"type": "String"
+			},
+			{
+				"name": "Supply Chain Emission Factors without Margins",
+				"type": "String"
+			},
+			{
+				"name": "Margins of Supply Chain Emission Factors",
+				"type": "String"
+			},
+			{
+				"name": "Supply Chain Emission Factors with Margins",
+				"type": "String"
+			},
+			{
+				"name": "Reference USEEIO Code",
+				"type": "String"
+			}
+		]
+	}
+}
