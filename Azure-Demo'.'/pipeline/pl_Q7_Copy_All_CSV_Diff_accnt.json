@@ -1,46 +1,13 @@
 {
-	"name": "pl_Q7_diff_accnt",
+	"name": "pl_Q7_Copy_All_CSV_Diff_accnt",
 	"properties": {
 		"activities": [
-			{
-				"name": "LookupFile",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.10:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": false,
-							"wildcardFolderPath": "csv-directory",
-							"wildcardFileName": "*",
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"dataset": {
-						"referenceName": "DS_ADLS_Source_Folder",
-						"type": "DatasetReference"
-					},
-					"firstRowOnly": false
-				}
-			},
 			{
 				"name": "ForEachFile",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "LookupFile",
+						"activity": "GetMetadata",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -49,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('LookupFile').output.value",
+						"value": "@activity('GetMetadata').output.childItems",
 						"type": "Expression"
 					},
 					"activities": [
@@ -100,10 +67,10 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "DS_ADLS_Source_CSV",
+									"referenceName": "DS_Source_File_csv",
 									"type": "DatasetReference",
 									"parameters": {
-										"FileName": {
+										"src_fileName": {
 											"value": "@item().name",
 											"type": "Expression"
 										}
@@ -112,10 +79,10 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "DS_ADLS_Target_CSV",
+									"referenceName": "DS_Target_File_csv",
 									"type": "DatasetReference",
 									"parameters": {
-										"t_fileName": {
+										"trg_fileName": {
 											"value": "@item().name",
 											"type": "Expression"
 										}
@@ -124,6 +91,35 @@
 							]
 						}
 					]
+				}
+			},
+			{
+				"name": "GetMetadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.10:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_Binary_Source_Folder",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobStorageReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
 				}
 			}
 		],
