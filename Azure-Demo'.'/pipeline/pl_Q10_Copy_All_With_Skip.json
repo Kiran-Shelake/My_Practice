@@ -56,7 +56,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(item().type,'csv')",
+									"value": "@endswith(item().name,'.csv')",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
@@ -111,7 +111,7 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"src_fileName": {
-														"value": "@activity('GetFileList').output.itemName",
+														"value": "@item().name",
 														"type": "Expression"
 													}
 												}
@@ -123,7 +123,7 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"trg_fileName": {
-														"value": "@activity('GetFileList').output.itemName",
+														"value": "@item().name",
 														"type": "Expression"
 													}
 												}
