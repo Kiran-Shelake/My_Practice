@@ -1,0 +1,18 @@
+{
+	"name": "Ds_Q10_src_folder",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "azuredataset",
+				"fileSystem": "assignment3"
+			}
+		}
+	}
+}
