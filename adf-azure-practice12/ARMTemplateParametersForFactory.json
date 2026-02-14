@@ -8,6 +8,9 @@
 		"AzureSqlDatabase1_password": {
 			"value": ""
 		},
+		"LS_AzureBlobStorage_connectionString": {
+			"value": ""
+		},
 		"ls_AzureDataLakeStorage1_accountKey": {
 			"value": ""
 		},
@@ -19,6 +22,18 @@
 		},
 		"AzureSqlDatabase1_properties_typeProperties_userName": {
 			"value": "My_Adim"
+		},
+		"LS_AzureSQL_Param_properties_typeProperties_server": {
+			"value": "@{linkedService().serverName}"
+		},
+		"LS_AzureSQL_Param_properties_typeProperties_database": {
+			"value": "@{linkedService().dbName}"
+		},
+		"LS_AzureSQL_Param_properties_typeProperties_userName": {
+			"value": "@{linkedService().userName}"
+		},
+		"LS_KeyVault_Kiran_properties_typeProperties_baseUrl": {
+			"value": "https://Kiran-keyvault-intellibi.vault.azure.net/"
 		},
 		"ls_AzureDataLakeStorage1_properties_typeProperties_url": {
 			"value": "https://saazurepractice12.dfs.core.windows.net/"
