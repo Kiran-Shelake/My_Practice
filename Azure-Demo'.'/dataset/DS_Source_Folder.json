@@ -10,8 +10,9 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "csv-directory",
-				"fileSystem": "assignment-4"
+				"fileName": "GreenHouseEmission.csv",
+				"folderPath": "azuredataset",
+				"fileSystem": "assignment3"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
