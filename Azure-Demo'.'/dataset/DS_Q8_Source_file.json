@@ -1,5 +1,5 @@
 {
-	"name": "DS_Source_Folder",
+	"name": "DS_Q8_Source_file",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_AzureDataLakeStorage1",
