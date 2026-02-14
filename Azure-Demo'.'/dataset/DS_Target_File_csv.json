@@ -19,7 +19,7 @@
 					"value": "@dataset().trg_fileName",
 					"type": "Expression"
 				},
-				"folderPath": "Target",
+				"folderPath": "Results",
 				"fileSystem": "assignment-4"
 			},
 			"columnDelimiter": ",",
