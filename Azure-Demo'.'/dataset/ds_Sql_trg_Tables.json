@@ -2,8 +2,12 @@
 	"name": "ds_Sql_trg_Tables",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureSqlDatabase1",
-			"type": "LinkedServiceReference"
+			"referenceName": "ls_SQL_db_Server",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"dbName": "DB_SALES",
+				"ServerName": "az-sql-server-demo.database.windows.net"
+			}
 		},
 		"parameters": {
 			"t_tablename": {
