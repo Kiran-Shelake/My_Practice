@@ -2,11 +2,13 @@
 	"name": "ds_Sql_trg_Tables",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_SQL_db_Server",
+			"referenceName": "LS_AzureSQL_Param",
 			"type": "LinkedServiceReference",
 			"parameters": {
+				"serverName": "az-sql-server-demo.database.windows.net",
 				"dbName": "DB_SALES",
-				"ServerName": "az-sql-server-demo.database.windows.net"
+				"userName": "sqladmin",
+				"password": "Admin@12345"
 			}
 		},
 		"parameters": {
