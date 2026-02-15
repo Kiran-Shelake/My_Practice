@@ -6,24 +6,448 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-azure-practice12"
-		},
-		"ls_SQL_db_Server_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "@{linkedService().ServerName}"
-		},
-		"ls_SQL_db_Server_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "@{linkedService().dbName}"
-		},
-		"ls_SQL_db_Server_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "My_Adim"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_diffjsonl_covid_tracking')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "covid_tracking.jsonl",
+						"folderPath": "pandemicdata-copyactivity",
+						"fileSystem": "raw"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"date": {
+							"type": "string"
+						},
+						"state": {
+							"type": "string"
+						},
+						"positive": {
+							"type": "integer"
+						},
+						"hospitalized_currently": {
+							"type": "integer"
+						},
+						"hospitalized_cumulative": {
+							"type": "integer"
+						},
+						"on_ventilator_currently": {
+							"type": "integer"
+						},
+						"last_update_et": {
+							"type": "string"
+						},
+						"hash": {
+							"type": "string"
+						},
+						"date_checked": {
+							"type": "string"
+						},
+						"death": {
+							"type": "integer"
+						},
+						"hospitalized": {
+							"type": "integer"
+						},
+						"total": {
+							"type": "integer"
+						},
+						"total_test_results": {
+							"type": "integer"
+						},
+						"pos_neg": {
+							"type": "integer"
+						},
+						"fips": {
+							"type": "integer"
+						},
+						"death_increase": {
+							"type": "integer"
+						},
+						"hospitalized_increase": {
+							"type": "integer"
+						},
+						"negative_increase": {
+							"type": "integer"
+						},
+						"positive_increase": {
+							"type": "integer"
+						},
+						"total_test_results_increase": {
+							"type": "integer"
+						},
+						"fips_code": {
+							"type": "string"
+						},
+						"iso_subdivision": {
+							"type": "string"
+						},
+						"load_time": {
+							"type": "string"
+						},
+						"iso_country": {
+							"type": "string"
+						},
+						"negative": {
+							"type": "integer"
+						},
+						"in_icu_cumulative": {
+							"type": "integer"
+						},
+						"on_ventilator_cumulative": {
+							"type": "integer"
+						},
+						"recovered": {
+							"type": "integer"
+						},
+						"in_icu_currently": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_diffparquet_covid_tracking')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "covid_tracking.parquet",
+						"folderPath": "pandemicdata-copyactivity",
+						"fileSystem": "raw"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_emlpoyee')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "employees.csv",
+						"folderPath": "azure-practice-folder",
+						"fileSystem": "azure-practice-container"
+					},
+					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_filename_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Filename.json",
+						"folderPath": "azuredataset",
+						"fileSystem": "assignment3"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"fileName": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_folder')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "Input_New_data",
+						"fileSystem": "azure-practice-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "circuitId",
+						"type": "String"
+					},
+					{
+						"name": "circuitRef",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "location",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "lat",
+						"type": "String"
+					},
+					{
+						"name": "lng",
+						"type": "String"
+					},
+					{
+						"name": "alt",
+						"type": "String"
+					},
+					{
+						"name": "url",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_foreach')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "Input_New_data",
+						"fileSystem": "azure-practice-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "circuitId",
+						"type": "String"
+					},
+					{
+						"name": "circuitRef",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "location",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "lat",
+						"type": "String"
+					},
+					{
+						"name": "lng",
+						"type": "String"
+					},
+					{
+						"name": "alt",
+						"type": "String"
+					},
+					{
+						"name": "url",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_json_covid_tracking')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "covid_tracking.json",
+						"folderPath": "azuredataset",
+						"fileSystem": "assignment3"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"date": {
+							"type": "string"
+						},
+						"state": {
+							"type": "string"
+						},
+						"positive": {
+							"type": "integer"
+						},
+						"hospitalized_currently": {
+							"type": "integer"
+						},
+						"hospitalized_cumulative": {
+							"type": "integer"
+						},
+						"on_ventilator_currently": {
+							"type": "integer"
+						},
+						"last_update_et": {
+							"type": "string"
+						},
+						"hash": {
+							"type": "string"
+						},
+						"date_checked": {
+							"type": "string"
+						},
+						"death": {
+							"type": "integer"
+						},
+						"hospitalized": {
+							"type": "integer"
+						},
+						"total": {
+							"type": "integer"
+						},
+						"total_test_results": {
+							"type": "integer"
+						},
+						"pos_neg": {
+							"type": "integer"
+						},
+						"fips": {
+							"type": "integer"
+						},
+						"death_increase": {
+							"type": "integer"
+						},
+						"hospitalized_increase": {
+							"type": "integer"
+						},
+						"negative_increase": {
+							"type": "integer"
+						},
+						"positive_increase": {
+							"type": "integer"
+						},
+						"total_test_results_increase": {
+							"type": "integer"
+						},
+						"fips_code": {
+							"type": "string"
+						},
+						"iso_subdivision": {
+							"type": "string"
+						},
+						"load_time": {
+							"type": "string"
+						},
+						"iso_country": {
+							"type": "string"
+						},
+						"negative": {
+							"type": "integer"
+						},
+						"in_icu_cumulative": {
+							"type": "integer"
+						},
+						"on_ventilator_cumulative": {
+							"type": "integer"
+						},
+						"recovered": {
+							"type": "integer"
+						},
+						"in_icu_currently": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ds_jsonl_covid_tracking')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
@@ -730,984 +1154,6 @@
 					"schema": "dbo",
 					"table": "Target_races"
 				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/inputDataSet')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "olist_customers_dataset.csv",
-						"folderPath": "Input_New_data",
-						"fileSystem": "azure-practice-container"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "customer_id",
-						"type": "String"
-					},
-					{
-						"name": "customer_unique_id",
-						"type": "String"
-					},
-					{
-						"name": "customer_zip_code_prefix",
-						"type": "String"
-					},
-					{
-						"name": "customer_city",
-						"type": "String"
-					},
-					{
-						"name": "customer_state",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_SQL_db_Server')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"parameters": {
-					"dbName": {
-						"type": "string"
-					},
-					"ServerName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"server": "[parameters('ls_SQL_db_Server_properties_typeProperties_server')]",
-					"database": "[parameters('ls_SQL_db_Server_properties_typeProperties_database')]",
-					"encrypt": "mandatory",
-					"trustServerCertificate": true,
-					"authenticationType": "SQL",
-					"userName": "[parameters('ls_SQL_db_Server_properties_typeProperties_userName')]",
-					"password": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "ls_key_Vault",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "Sct-AdminPass",
-						"secretVersion": "608c7ea9efd949968746f7b0e557d0e9"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl-azure-practice')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "first pipline",
-				"activities": [
-					{
-						"name": "adf-copy-demo",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.00:10:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings",
-									"copyBehavior": "FlattenHierarchy"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "EMPLOYEE_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "EMPLOYEE_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "FIRST_NAME",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "F_NAME",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "LAST_NAME",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "L_NAME",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "EMAIL",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "PHONE_NUMBER",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "HIRE_DATE",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "HIRE_DATE",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "JOB_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "SALARY",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "SALARY",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "COMMISSION_PCT",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "COMMISSION_PCT",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "DEPARTMENT_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "DEPARTMENT_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_adf_demo",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_adf_demo2",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Delete1",
-						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "adf-copy-demo",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_adf_demo2",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"logStorageSettings": {
-								"linkedServiceName": {
-									"referenceName": "ls_AzureDataLakeStorage1",
-									"type": "LinkedServiceReference"
-								},
-								"path": "azure-practice-container/azure-practice-folder"
-							},
-							"enableLogging": true,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "adf-practice"
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl-azure-wait-activity')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.00:10:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "DEPARTMENT_ID",
-											"type": "Int32",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "DEPARTMENT_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "DEPARTMENT_NAME",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "DEPARTMENT_NAME",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "MANAGER_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "LOCATION_ID",
-											"type": "String",
-											"physicalType": "String"
-										},
-										"sink": {
-											"name": "LOCATION_ID",
-											"type": "String",
-											"physicalType": "String"
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_adf_demo",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_adf_demo2",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
-						"name": "Wait_demo",
-						"type": "Wait",
-						"dependsOn": [
-							{
-								"activity": "Copy data",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"waitTimeInSeconds": 60
-						}
-					},
-					{
-						"name": "Delete_Operation",
-						"type": "Delete",
-						"dependsOn": [
-							{
-								"activity": "Wait_demo",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_adf_demo2",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"enableLogging": false,
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "adf-practice"
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_GetMetadata_new')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get_File_Name",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.00:10:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_folder",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"modifiedDatetimeStart": {
-									"value": "@getPastTime(24, 'hour')",
-									"type": "Expression"
-								},
-								"modifiedDatetimeEnd": {
-									"value": "@utcNow()",
-									"type": "Expression"
-								},
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get_File_Name",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get_File_Name').output.childItems",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Copy data1",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:10:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"additionalColumns": [
-												{
-													"name": "Load_Date",
-													"value": {
-														"value": "@utcNow()",
-														"type": "Expression"
-													}
-												}
-											],
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"wildcardFileName": {
-													"value": "@item().name",
-													"type": "Expression"
-												},
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "AzureSqlSink",
-											"preCopyScript": {
-												"value": "@concat('DROP TABLE IF EXISTS dbo.',split(item().name,'.')[0])",
-												"type": "Expression"
-											},
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
-											"tableOption": "autoCreate",
-											"disableMetricsCollection": false
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "ds_foreach",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "AzureSqlTable1",
-											"type": "DatasetReference",
-											"parameters": {
-												"tableName": "@split(item().name,'.')[0]"
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "adf-practice"
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_Getmetadata')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata_demo",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.00:10:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_adf_demo2",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"modifiedDatetimeStart": {
-									"value": "@getPastTime(24,'hour')",
-									"type": "Expression"
-								},
-								"modifiedDatetimeEnd": {
-									"value": "@utcNow()",
-									"type": "Expression"
-								},
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "ForEach_demo",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata_demo",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Metadata_demo').output.childItems",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Copy data1",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:10:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [
-										{
-											"name": "Source",
-											"value": "azure-practice-container/Input_New_data/"
-										},
-										{
-											"name": "Destination",
-											"value": "datademo.@{split(item().name,'.')[0]}"
-										}
-									],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"additionalColumns": [
-												{
-													"name": "LoadDate",
-													"value": {
-														"value": "@utcNow()",
-														"type": "Expression"
-													}
-												}
-											],
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"wildcardFileName": {
-													"value": "@item().name",
-													"type": "Expression"
-												},
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "AzureSqlSink",
-											"preCopyScript": {
-												"value": "@(concat('DROP TABLE IF EXISTS dbo.',split(item().name,'.')[0]))",
-												"type": "Expression"
-											},
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
-											"tableOption": "autoCreate",
-											"disableMetricsCollection": false
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "ds_adf_demo2",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "AzureSqlTable1",
-											"type": "DatasetReference",
-											"parameters": {
-												"tableName": {
-													"value": "@split(item().name,'.')[0]",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"folder": {
-					"name": "adf-practice"
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_If_Condition_demo')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "If Condition demo",
-						"type": "IfCondition",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@bool(pipeline().parameters.copytoOutput1)",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Copy data_If Flase",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:10:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "BinarySource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true
-											},
-											"formatSettings": {
-												"type": "BinaryReadSettings"
-											}
-										},
-										"sink": {
-											"type": "BinarySink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											}
-										},
-										"enableStaging": false
-									},
-									"inputs": [
-										{
-											"referenceName": "Binary_dataSet",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "Binary_output_dataSet",
-											"type": "DatasetReference",
-											"parameters": {
-												"outputFolder": {
-													"value": "@pipeline().parameters.output2Folder",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Copy data_If True",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.00:10:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "BinarySource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true
-											},
-											"formatSettings": {
-												"type": "BinaryReadSettings"
-											}
-										},
-										"sink": {
-											"type": "BinarySink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings",
-												"copyBehavior": "PreserveHierarchy"
-											}
-										},
-										"enableStaging": false
-									},
-									"inputs": [
-										{
-											"referenceName": "Binary_dataSet",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "Binary_output_dataSet",
-											"type": "DatasetReference",
-											"parameters": {
-												"outputFolder": {
-													"value": "@pipeline().parameters.output1Folder",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"copytoOutput1": {
-						"type": "string",
-						"defaultValue": "true"
-					},
-					"output1Folder": {
-						"type": "string",
-						"defaultValue": "output1"
-					},
-					"output2Folder": {
-						"type": "string",
-						"defaultValue": "output2"
-					}
-				},
-				"folder": {
-					"name": "adf-practice"
-				},
-				"annotations": []
 			},
 			"dependsOn": []
 		}

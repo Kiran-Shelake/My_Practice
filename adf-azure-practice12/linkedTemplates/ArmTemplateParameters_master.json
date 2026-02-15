@@ -11,6 +11,9 @@
 		"LS_AzureBlobStorage_connectionString": {
 			"value": ""
 		},
+		"LS_DB_Sqladmin_password": {
+			"value": ""
+		},
 		"ls_AzureDataLakeStorage1_accountKey": {
 			"value": ""
 		},
@@ -31,6 +34,15 @@
 		},
 		"LS_AzureSQL_Param_properties_typeProperties_userName": {
 			"value": "@{linkedService().userName}"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_server": {
+			"value": "az-sql-server-demo.database.windows.net"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_database": {
+			"value": "master"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_userName": {
+			"value": "sqladmin"
 		},
 		"LS_KeyVault_Kiran_properties_typeProperties_baseUrl": {
 			"value": "https://Kiran-keyvault-intellibi.vault.azure.net/"

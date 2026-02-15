@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
 		},
+		"LS_DB_Sqladmin_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_DB_Sqladmin'"
+		},
 		"ls_AzureDataLakeStorage1_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_AzureDataLakeStorage1'"
@@ -42,6 +46,18 @@
 		"LS_AzureSQL_Param_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "@{linkedService().userName}"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "az-sql-server-demo.database.windows.net"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "master"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
 		},
 		"LS_KeyVault_Kiran_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -104,6 +120,9 @@
 					"LS_AzureBlobStorage_connectionString": {
 						"value": "[parameters('LS_AzureBlobStorage_connectionString')]"
 					},
+					"LS_DB_Sqladmin_password": {
+						"value": "[parameters('LS_DB_Sqladmin_password')]"
+					},
 					"ls_AzureDataLakeStorage1_accountKey": {
 						"value": "[parameters('ls_AzureDataLakeStorage1_accountKey')]"
 					},
@@ -124,6 +143,15 @@
 					},
 					"LS_AzureSQL_Param_properties_typeProperties_userName": {
 						"value": "[parameters('LS_AzureSQL_Param_properties_typeProperties_userName')]"
+					},
+					"LS_DB_Sqladmin_properties_typeProperties_server": {
+						"value": "[parameters('LS_DB_Sqladmin_properties_typeProperties_server')]"
+					},
+					"LS_DB_Sqladmin_properties_typeProperties_database": {
+						"value": "[parameters('LS_DB_Sqladmin_properties_typeProperties_database')]"
+					},
+					"LS_DB_Sqladmin_properties_typeProperties_userName": {
+						"value": "[parameters('LS_DB_Sqladmin_properties_typeProperties_userName')]"
 					},
 					"LS_KeyVault_Kiran_properties_typeProperties_baseUrl": {
 						"value": "[parameters('LS_KeyVault_Kiran_properties_typeProperties_baseUrl')]"
@@ -174,15 +202,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"ls_SQL_db_Server_properties_typeProperties_server": {
-						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_server')]"
-					},
-					"ls_SQL_db_Server_properties_typeProperties_database": {
-						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_database')]"
-					},
-					"ls_SQL_db_Server_properties_typeProperties_userName": {
-						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_userName')]"
 					}
 				}
 			},
@@ -203,6 +222,15 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"ls_SQL_db_Server_properties_typeProperties_server": {
+						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_server')]"
+					},
+					"ls_SQL_db_Server_properties_typeProperties_database": {
+						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_database')]"
+					},
+					"ls_SQL_db_Server_properties_typeProperties_userName": {
+						"value": "[parameters('ls_SQL_db_Server_properties_typeProperties_userName')]"
 					}
 				}
 			},
@@ -228,6 +256,26 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'adf-azure-practice12_ArmTemplate_3')]"
+			]
+		},
+		{
+			"name": "adf-azure-practice12_ArmTemplate_5",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_5.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-azure-practice12_ArmTemplate_4')]"
 			]
 		}
 	]

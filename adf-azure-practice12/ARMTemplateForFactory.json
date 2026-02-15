@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_AzureBlobStorage'"
 		},
+		"LS_DB_Sqladmin_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_DB_Sqladmin'"
+		},
 		"ls_AzureDataLakeStorage1_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'ls_AzureDataLakeStorage1'"
@@ -42,6 +46,18 @@
 		"LS_AzureSQL_Param_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "@{linkedService().userName}"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "az-sql-server-demo.database.windows.net"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "master"
+		},
+		"LS_DB_Sqladmin_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
 		},
 		"LS_KeyVault_Kiran_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -1664,6 +1680,615 @@
 				"[concat(variables('factoryId'), '/datasets/Ds_Q10_src_folder')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Source_File_csv')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Target_File_csv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q11_CopyAllTables')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_SqlTables",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT TABLE_SCHEMA AS TSCHEMA, TABLE_NAME AS TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n\n",
+									"type": "Expression"
+								},
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_LkUp_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachTable",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_SqlTables",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_SqlTables').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "CopySQLTable",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.10:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "01:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_all_SqlTables",
+											"type": "DatasetReference",
+											"parameters": {
+												"tableName": {
+													"value": "@item().TABLE_NAME",
+													"type": "Expression"
+												},
+												"schema": {
+													"value": "@item().TSCHEMA",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_Sql_trg_Tables",
+											"type": "DatasetReference",
+											"parameters": {
+												"t_tablename": {
+													"value": "@item().TABLE_NAME",
+													"type": "Expression"
+												},
+												"t_schema": {
+													"value": "@item().TSCHEMA",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_LkUp_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_Sql_trg_Tables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q12_Copy_with_Autocreatetable')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_table",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_all_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": {
+										"value": "@pipeline().parameters.src_table",
+										"type": "Expression"
+									},
+									"schema": {
+										"value": "@pipeline().parameters.src_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_Sql_trg_Tables",
+								"type": "DatasetReference",
+								"parameters": {
+									"t_tablename": {
+										"value": "@pipeline().parameters.sink_table",
+										"type": "Expression"
+									},
+									"t_schema": {
+										"value": "@pipeline().parameters.sink_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"src_table": {
+						"type": "string"
+					},
+					"src_schema": {
+						"type": "string"
+					},
+					"sink_table": {
+						"type": "string"
+					},
+					"sink_schema": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_Sql_trg_Tables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q13_Copy_with_DiffSchema')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_table",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_all_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"schema": {
+										"value": "@pipeline().parameters.src_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_Sql_trg_Tables",
+								"type": "DatasetReference",
+								"parameters": {
+									"t_tablename": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"t_schema": {
+										"value": "@pipeline().parameters.sink_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					},
+					"src_schema": {
+						"type": "string"
+					},
+					"sink_schema": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_Sql_trg_Tables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q14_If_Error_rerun')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_table",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 120,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_all_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"schema": {
+										"value": "@pipeline().parameters.src_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_Sql_trg_Tables",
+								"type": "DatasetReference",
+								"parameters": {
+									"t_tablename": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"t_schema": {
+										"value": "@pipeline().parameters.sink_schema",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					},
+					"src_schema": {
+						"type": "string"
+					},
+					"sink_schema": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_Sql_trg_Tables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q15_StoreProcedure')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_SalesOrderHeader",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_Q15_SalesLTSalesOrderHeader",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_Q15_dboSalesOrderHeader",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Copy_SalesOrderDetail",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy_SalesOrderHeader",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_Q15_SalesLTSalesOrderDetail",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_Q15_dboSalesOrderDetail",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Stored procedure1",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_SalesOrderDetail",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[InsertDailySales]",
+							"storedProcedureParameters": {
+								"SalesDate": {
+									"value": {
+										"value": "@pipeline().parameters.salesDate",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase1",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"salesDate": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_Q15_SalesLTSalesOrderHeader')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Q15_dboSalesOrderHeader')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Q15_SalesLTSalesOrderDetail')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Q15_dboSalesOrderDetail')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
 			]
 		},
 		{
@@ -4638,6 +5263,165 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_Q15_SalesLTSalesOrderDetail')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SalesOrderDetailID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderQty",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "ProductID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "UnitPrice",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "UnitPriceDiscount",
+						"type": "money",
+						"precision": 19,
+						"scale": 4
+					},
+					{
+						"name": "LineTotal",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 6
+					},
+					{
+						"name": "rowguid",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": "SalesOrderDetail"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Q15_SalesLTSalesOrderHeader')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderDate",
+						"type": "date"
+					},
+					{
+						"name": "CustomerName",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": "SalesOrderHeader"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Q15_dboSalesOrderDetail')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderDetail"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Param')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Q15_dboSalesOrderHeader')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesOrderHeader"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Param')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_Q8_Source_file')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -4996,6 +5780,45 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_LkUp_SqlTables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_SQL_db_Server",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"dbName": "free-sql-db",
+						"ServerName": "mysql-db-server.database.windows.net"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "StudentID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "StudentName",
+						"type": "varchar"
+					},
+					{
+						"name": "Course",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Students"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_SQL_db_Server')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_Q4_GreenHouseEmission_Excel')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5082,6 +5905,47 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_Sql_trg_Tables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"parameters": {
+					"t_tablename": {
+						"type": "string"
+					},
+					"t_schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().t_schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().t_tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Param')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_adf_demo')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5136,6 +6000,41 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_all_SqlTables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"tableName": {
+						"type": "string"
+					},
+					"schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
 			]
 		},
 		{
@@ -6743,6 +7642,28 @@
 					"authenticationType": "SQL",
 					"userName": "[parameters('LS_AzureSQL_Param_properties_typeProperties_userName')]",
 					"password": "@{linkedService().password}"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_DB_Sqladmin')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_DB_Sqladmin_properties_typeProperties_server')]",
+					"database": "[parameters('LS_DB_Sqladmin_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_DB_Sqladmin_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_DB_Sqladmin_password')]"
+					}
 				}
 			},
 			"dependsOn": []
