@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT TABLE_SCHEMA + '.' + TABLE_NAME AS TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n\n",
+							"value": "SELECT TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "01:00:00",
@@ -64,7 +64,7 @@
 							"typeProperties": {
 								"source": {
 									"type": "AzureSqlSource",
-									"queryTimeout": "01:02:00",
+									"queryTimeout": "01:00:00",
 									"partitionOption": "None"
 								},
 								"sink": {
