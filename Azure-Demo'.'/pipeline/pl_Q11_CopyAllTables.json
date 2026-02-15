@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT TABLE_SCHEMA AS SCHEMA TABLE_NAME AS TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n\n",
+							"value": "SELECT TABLE_SCHEMA AS SCHEMA, TABLE_NAME AS TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "01:00:00",
