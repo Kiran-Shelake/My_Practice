@@ -2,12 +2,8 @@
 	"name": "ds_all_SqlTables",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_SQL_db_Server",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"dbName": "free-sql-db",
-				"ServerName": "mysql-db-server.database.windows.net"
-			}
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"tableName": {
@@ -18,7 +14,6 @@
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": "",
 			"table": {
 				"value": "@dataset().tableName",
 				"type": "Expression"
