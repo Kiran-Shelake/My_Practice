@@ -1,0 +1,30 @@
+{
+	"name": "ds_LkUp_SqlTables",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_SQL_db_Server",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "StudentID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "StudentName",
+				"type": "varchar"
+			},
+			{
+				"name": "Course",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Students"
+		}
+	}
+}
