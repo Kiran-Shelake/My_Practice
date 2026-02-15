@@ -1,0 +1,22 @@
+{
+	"name": "DS_Q15_dboSalesOrderHeader",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Param",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"serverName": "az-sql-server-demo.database.windows.net",
+				"dbName": "DB_SALES",
+				"userName": "sqladmin",
+				"password": "Admin@12345"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "SalesOrderHeader"
+		}
+	}
+}
