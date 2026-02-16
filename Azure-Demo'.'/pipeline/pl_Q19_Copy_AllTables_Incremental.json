@@ -1,0 +1,41 @@
+{
+	"name": "pl_Q19_Copy_AllTables_Incremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Get_Tables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.10:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT TableName, IncrementalColumn \nFROM Table_Metadata\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_all_SqlTables",
+						"type": "DatasetReference",
+						"parameters": {
+							"tableName": "Students",
+							"schema": "dbo"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"folder": {
+			"name": "adf-assignment-4"
+		},
+		"annotations": []
+	}
+}
