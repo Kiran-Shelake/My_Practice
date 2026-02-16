@@ -1,5 +1,5 @@
 {
-	"name": "DS_all_src__SqlAdmin_TBs",
+	"name": "DS_all_src_SqlAdmin_TBs",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDatabase1",
