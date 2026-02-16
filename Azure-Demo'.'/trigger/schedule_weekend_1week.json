@@ -1,0 +1,24 @@
+{
+	"name": "schedule_weekend_1week",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-02-15T10:30:00",
+				"endTime": "2026-02-22T05:04:00",
+				"timeZone": "India Standard Time",
+				"schedule": {
+					"weekDays": [
+						"Sunday",
+						"Saturday"
+					]
+				}
+			}
+		}
+	}
+}
