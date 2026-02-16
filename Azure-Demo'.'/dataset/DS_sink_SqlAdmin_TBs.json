@@ -1,0 +1,23 @@
+{
+	"name": "DS_sink_SqlAdmin_TBs",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Snk_TableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"table": {
+				"value": "@dataset().Snk_TableName",
+				"type": "Expression"
+			}
+		}
+	}
+}
