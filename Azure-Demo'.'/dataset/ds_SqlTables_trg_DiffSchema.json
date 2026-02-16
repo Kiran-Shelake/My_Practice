@@ -1,0 +1,29 @@
+{
+	"name": "ds_SqlTables_trg_DiffSchema",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Param",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"serverName": "az-sql-server-demo.database.windows.net",
+				"dbName": "DB_SALES",
+				"userName": "sqladmin",
+				"password": "Admin@12345"
+			}
+		},
+		"parameters": {
+			"t_tablename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"table": {
+				"value": "@dataset().t_tablename",
+				"type": "Expression"
+			}
+		}
+	}
+}
