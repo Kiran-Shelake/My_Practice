@@ -8,12 +8,19 @@
 		"parameters": {
 			"Snk_TableName": {
 				"type": "string"
+			},
+			"Snk_Schema": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Snk_Schema",
+				"type": "Expression"
+			},
 			"table": {
 				"value": "@dataset().Snk_TableName",
 				"type": "Expression"
