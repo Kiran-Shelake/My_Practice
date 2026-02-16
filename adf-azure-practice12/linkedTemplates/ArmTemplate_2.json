@@ -13,6 +13,306 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_GreenHouseEmission_TB')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "GreenHouseEmission"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_Json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "JSON_example.json",
+						"folderPath": "azure-practice-folder",
+						"fileSystem": "azure-practice-container"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"Text1": {
+							"type": "string"
+						},
+						"Text2": {
+							"type": "string"
+						},
+						"Num1": {
+							"type": "number"
+						},
+						"Array1": {
+							"type": "array",
+							"items": {
+								"type": "integer"
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_Q4_GreenHouseEmission_Excel')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureBlobStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "GreenHouseEmission",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "GreenHouseEmission.xlsx",
+						"folderPath": "azuredataset",
+						"container": "assignment3"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "2017 NAICS Code",
+						"type": "String"
+					},
+					{
+						"name": "2017 NAICS Title",
+						"type": "String"
+					},
+					{
+						"name": "GHG",
+						"type": "String"
+					},
+					{
+						"name": "Unit",
+						"type": "String"
+					},
+					{
+						"name": "Supply Chain Emission Factors without Margins",
+						"type": "String"
+					},
+					{
+						"name": "Margins of Supply Chain Emission Factors",
+						"type": "String"
+					},
+					{
+						"name": "Supply Chain Emission Factors with Margins",
+						"type": "String"
+					},
+					{
+						"name": "Reference USEEIO Code",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_SalesOrderDetail_Parquet')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "SalesOrderDetail.parquet",
+						"folderPath": "output1",
+						"fileSystem": "azure-practice-container"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_SqlTables_trg_DiffSchema')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"parameters": {
+					"t_tablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"table": {
+						"value": "@dataset().t_tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_Sql_trg_Tables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"parameters": {
+					"t_tablename": {
+						"type": "string"
+					},
+					"t_schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().t_schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().t_tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adf_demo')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "departments.csv",
+						"folderPath": "azure-practice-folder",
+						"fileSystem": "azure-practice-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adf_demo2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "output_results",
+						"fileSystem": "azure-practice-container"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_all_SqlTables')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"tableName": {
+						"type": "string"
+					},
+					"schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_csv_ProductModel')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -627,645 +927,6 @@
 						"type": "String"
 					}
 				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_json_covid_tracking')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "covid_tracking.json",
-						"folderPath": "azuredataset",
-						"fileSystem": "assignment3"
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"date": {
-							"type": "string"
-						},
-						"state": {
-							"type": "string"
-						},
-						"positive": {
-							"type": "integer"
-						},
-						"hospitalized_currently": {
-							"type": "integer"
-						},
-						"hospitalized_cumulative": {
-							"type": "integer"
-						},
-						"on_ventilator_currently": {
-							"type": "integer"
-						},
-						"last_update_et": {
-							"type": "string"
-						},
-						"hash": {
-							"type": "string"
-						},
-						"date_checked": {
-							"type": "string"
-						},
-						"death": {
-							"type": "integer"
-						},
-						"hospitalized": {
-							"type": "integer"
-						},
-						"total": {
-							"type": "integer"
-						},
-						"total_test_results": {
-							"type": "integer"
-						},
-						"pos_neg": {
-							"type": "integer"
-						},
-						"fips": {
-							"type": "integer"
-						},
-						"death_increase": {
-							"type": "integer"
-						},
-						"hospitalized_increase": {
-							"type": "integer"
-						},
-						"negative_increase": {
-							"type": "integer"
-						},
-						"positive_increase": {
-							"type": "integer"
-						},
-						"total_test_results_increase": {
-							"type": "integer"
-						},
-						"fips_code": {
-							"type": "string"
-						},
-						"iso_subdivision": {
-							"type": "string"
-						},
-						"load_time": {
-							"type": "string"
-						},
-						"iso_country": {
-							"type": "string"
-						},
-						"negative": {
-							"type": "integer"
-						},
-						"in_icu_cumulative": {
-							"type": "integer"
-						},
-						"on_ventilator_cumulative": {
-							"type": "integer"
-						},
-						"recovered": {
-							"type": "integer"
-						},
-						"in_icu_currently": {
-							"type": "integer"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_jsonl_covid_tracking')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "covid_tracking.jsonl",
-						"folderPath": "azuredataset",
-						"fileSystem": "assignment3"
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"date": {
-							"type": "string"
-						},
-						"state": {
-							"type": "string"
-						},
-						"positive": {
-							"type": "integer"
-						},
-						"hospitalized_currently": {
-							"type": "integer"
-						},
-						"hospitalized_cumulative": {
-							"type": "integer"
-						},
-						"on_ventilator_currently": {
-							"type": "integer"
-						},
-						"last_update_et": {
-							"type": "string"
-						},
-						"hash": {
-							"type": "string"
-						},
-						"date_checked": {
-							"type": "string"
-						},
-						"death": {
-							"type": "integer"
-						},
-						"hospitalized": {
-							"type": "integer"
-						},
-						"total": {
-							"type": "integer"
-						},
-						"total_test_results": {
-							"type": "integer"
-						},
-						"pos_neg": {
-							"type": "integer"
-						},
-						"fips": {
-							"type": "integer"
-						},
-						"death_increase": {
-							"type": "integer"
-						},
-						"hospitalized_increase": {
-							"type": "integer"
-						},
-						"negative_increase": {
-							"type": "integer"
-						},
-						"positive_increase": {
-							"type": "integer"
-						},
-						"total_test_results_increase": {
-							"type": "integer"
-						},
-						"fips_code": {
-							"type": "string"
-						},
-						"iso_subdivision": {
-							"type": "string"
-						},
-						"load_time": {
-							"type": "string"
-						},
-						"iso_country": {
-							"type": "string"
-						},
-						"negative": {
-							"type": "integer"
-						},
-						"in_icu_cumulative": {
-							"type": "integer"
-						},
-						"on_ventilator_cumulative": {
-							"type": "integer"
-						},
-						"recovered": {
-							"type": "integer"
-						},
-						"in_icu_currently": {
-							"type": "integer"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_parquet_covid_tracking')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_AzureDataLakeStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "covid_tracking.parquet",
-						"folderPath": "azuredataset",
-						"fileSystem": "assignment3"
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sqlProductModel')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "ProductModelID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "PName",
-						"type": "nvarchar"
-					},
-					{
-						"name": "CatalogDescription",
-						"type": "nvarchar"
-					},
-					{
-						"name": "Rowguid",
-						"type": "uniqueidentifier"
-					},
-					{
-						"name": "ModifiedDate",
-						"type": "date"
-					}
-				],
-				"typeProperties": {
-					"schema": "SalesLT",
-					"table": "ProductModel"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sql_EmpDepart_FullJoin')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "EMPLOYEE_ID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "FIRST_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "LAST_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "EMAIL",
-						"type": "varchar"
-					},
-					{
-						"name": "PHONE_NUMBER",
-						"type": "varchar"
-					},
-					{
-						"name": "HIRE_DATE",
-						"type": "date"
-					},
-					{
-						"name": "JOB_ID",
-						"type": "varchar"
-					},
-					{
-						"name": "SALARY",
-						"type": "decimal",
-						"precision": 18,
-						"scale": 2
-					},
-					{
-						"name": "COMMISSION_PCT",
-						"type": "varchar"
-					},
-					{
-						"name": "DEPARTMENT_ID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "DEPARTMENT_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "MANAGER_ID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "LOCATION_ID",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "EmpDepart_FullJoin"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sql_EmpDept_join')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "EMPLOYEE_ID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "FIRST_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "LAST_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "EMAIL",
-						"type": "varchar"
-					},
-					{
-						"name": "PHONE_NUMBER",
-						"type": "varchar"
-					},
-					{
-						"name": "HIRE_DATE",
-						"type": "date"
-					},
-					{
-						"name": "JOB_ID",
-						"type": "varchar"
-					},
-					{
-						"name": "SALARY",
-						"type": "decimal",
-						"precision": 18,
-						"scale": 0
-					},
-					{
-						"name": "COMMISSION_PCT",
-						"type": "varchar"
-					},
-					{
-						"name": "MANAGER_ID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "DEPARTMENT_ID",
-						"type": "int",
-						"precision": 10
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Employee_Info"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sql_SalesOrderDetail')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "SalesOrderID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "SalesOrderDetailID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "OrderQty",
-						"type": "smallint",
-						"precision": 5
-					},
-					{
-						"name": "ProductID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "UnitPrice",
-						"type": "money",
-						"precision": 19,
-						"scale": 4
-					},
-					{
-						"name": "UnitPriceDiscount",
-						"type": "money",
-						"precision": 19,
-						"scale": 4
-					},
-					{
-						"name": "LineTotal",
-						"type": "decimal",
-						"precision": 38,
-						"scale": 6
-					},
-					{
-						"name": "rowguid",
-						"type": "uniqueidentifier"
-					},
-					{
-						"name": "ModifiedDate",
-						"type": "datetime",
-						"precision": 23,
-						"scale": 3
-					}
-				],
-				"typeProperties": {
-					"schema": "SalesLT",
-					"table": "SalesOrderDetail"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sql_deparment')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "DEPARTMENT_ID",
-						"type": "varchar"
-					},
-					{
-						"name": "DEPARTMENT_NAME",
-						"type": "varchar"
-					},
-					{
-						"name": "MANAGER_ID",
-						"type": "varchar"
-					},
-					{
-						"name": "LOCATION_ID",
-						"type": "varchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "department"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sr_race_sql')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "raceId",
-						"type": "nvarchar"
-					},
-					{
-						"name": "year",
-						"type": "nvarchar"
-					},
-					{
-						"name": "round",
-						"type": "nvarchar"
-					},
-					{
-						"name": "circuitId",
-						"type": "nvarchar"
-					},
-					{
-						"name": "name",
-						"type": "nvarchar"
-					},
-					{
-						"name": "date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "url",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp1_date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp1_time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp2_date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp2_time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp3_date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "fp3_time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "quali_date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "quali_time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "sprint_date",
-						"type": "nvarchar"
-					},
-					{
-						"name": "sprint_time",
-						"type": "nvarchar"
-					},
-					{
-						"name": "Load_Date",
-						"type": "nvarchar"
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "races"
-				}
 			},
 			"dependsOn": []
 		}

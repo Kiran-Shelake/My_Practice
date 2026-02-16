@@ -39,7 +39,7 @@
 			"value": "az-sql-server-demo.database.windows.net"
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_database": {
-			"value": "master"
+			"value": "DB_SALES"
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_userName": {
 			"value": "sqladmin"

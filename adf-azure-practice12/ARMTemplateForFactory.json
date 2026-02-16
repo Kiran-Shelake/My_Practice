@@ -53,7 +53,7 @@
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_database": {
 			"type": "string",
-			"defaultValue": "master"
+			"defaultValue": "DB_SALES"
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_userName": {
 			"type": "string",
@@ -92,6 +92,243 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/New_pl_Q19_Copy_AllTables_Incremental_copy1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Get_Tables",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT TableName, IncrementalColumn FROM Table_Metadata",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SqlTable_MetaData",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Get_Tables",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Get_Tables').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "If_IncrementalColumn_Exists",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@not(empty(item().IncrementalColumn))\n",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "Copy_Full_Load",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "SELECT * FROM @{item().TableName}",
+															"type": "Expression"
+														},
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"sqlWriterUseTableLock": false,
+														"tableOption": "autoCreate",
+														"disableMetricsCollection": false
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_all_SqlTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"tableName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															},
+															"schema": "dbo"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_SqlTables_trg_DiffSchema",
+														"type": "DatasetReference",
+														"parameters": {
+															"t_tablename": "@item().TableName"
+														}
+													}
+												]
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "Copy_Incremental",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "SELECT * \nFROM @{item().TableName}\nWHERE @{item().IncrementalColumn} > @{item().LastCopiedValue}\n",
+															"type": "Expression"
+														},
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"tableOption": "autoCreate"
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_all_SqlTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"tableName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															},
+															"schema": "dbo"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_SqlTables_trg_DiffSchema",
+														"type": "DatasetReference",
+														"parameters": {
+															"t_tablename": "@item().TableName"
+														}
+													}
+												]
+											},
+											{
+												"name": "Stored procedure1",
+												"type": "SqlServerStoredProcedure",
+												"dependsOn": [
+													{
+														"activity": "Copy_Incremental",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.10:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"storedProcedureName": "dbo.Table_Metadata",
+													"storedProcedureParameters": {
+														"TableName": {
+															"value": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"IncrementalColumn": {
+															"value": {
+																"value": "@item().IncrementalColumn",
+																"type": "Expression"
+															},
+															"type": "String"
+														},
+														"LastLoadedValue": {
+															"value": {
+																"value": "@item().LastLoadedValue",
+																"type": "Expression"
+															},
+															"type": "String"
+														}
+													}
+												},
+												"linkedServiceName": {
+													"referenceName": "AzureSqlDatabase1",
+													"type": "LinkedServiceReference"
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SqlTable_MetaData')]",
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_SqlTables_trg_DiffSchema')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl-azure-practice')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -2318,6 +2555,461 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q17_copy_GreenHouseEmission_toSqltable')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_GreenHouseEmission",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_GreenHouseEmission_csv",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_GreenHouseEmission_TB",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_GreenHouseEmission_csv')]",
+				"[concat(variables('factoryId'), '/datasets/ds_GreenHouseEmission_TB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q18_PL_Copy_ProductModel_Conditional')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Source_MaxID",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT ISNULL(MAX(ProductModelID),0) AS MaxID \nFROM SalesLT.ProductModel\n",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_src_sqlProductModel",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "Lookup_destination_MaxID",
+						"description": "",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Source_MaxID",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT ISNULL(MAX(ProductModelID),0) AS MaxID \r\nFROM SalesLT.ProductModel",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_trg_ProductModel_TB",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "If_Source_Greater_Than_Destination",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Lookup_destination_MaxID",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@greater(activity('Lookup_Source_MaxID').output.firstRow.MaxID,activity('Lookup_destination_MaxID').output.firstRow.MaxID)\n",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Copy_New_ProductModel_Records",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.10:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "SELECT *\nFROM SalesLT.ProductModel\nWHERE ProductModelID > @{activity('Lookup_destination_MaxID').output.firstRow.MaxID}\n",
+												"type": "Expression"
+											},
+											"queryTimeout": "01:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_src_sqlProductModel",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_trg_ProductModel_TB",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_src_sqlProductModel')]",
+				"[concat(variables('factoryId'), '/datasets/DS_trg_ProductModel_TB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q19_Copy_AllTables_Incremental')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Get_Tables",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT TableName, IncrementalColumn FROM Table_Metadata",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_all_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {
+									"tableName": "Table_Metadata",
+									"schema": "dbo"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Get_Tables",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Get_Tables').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "If_IncrementalColumn_Exists",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@not(empty(item().IncrementalColumn))",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "Copy_Full_Load",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "SELECT * FROM @{item().TableName}",
+															"type": "Expression"
+														},
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"tableOption": "autoCreate"
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_all_SqlTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"tableName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															},
+															"schema": "dbo"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_SqlTables_trg_DiffSchema",
+														"type": "DatasetReference",
+														"parameters": {
+															"t_tablename": "@item().TableName"
+														}
+													}
+												]
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "Lookup_Destination_MaxValue",
+												"type": "Lookup",
+												"dependsOn": [],
+												"policy": {
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "SELECT ISNULL(MAX(@{item().IncrementalColumn}),0) AS MaxValue FROM @{item().TableName}",
+															"type": "Expression"
+														},
+														"partitionOption": "None"
+													},
+													"dataset": {
+														"referenceName": "ds_SqlTables_trg_DiffSchema",
+														"type": "DatasetReference",
+														"parameters": {
+															"t_tablename": {
+																"value": "@item().TableName\n",
+																"type": "Expression"
+															}
+														}
+													},
+													"firstRowOnly": true
+												}
+											},
+											{
+												"name": "Copy_Incremental",
+												"type": "Copy",
+												"dependsOn": [
+													{
+														"activity": "Lookup_Destination_MaxValue",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": {
+															"value": "SELECT * FROM @{item().TableName} WHERE @{item().IncrementalColumn} > @{activity('Lookup_Destination_MaxValue').output.firstRow.MaxValue}",
+															"type": "Expression"
+														},
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "AzureSqlSink",
+														"writeBehavior": "insert",
+														"tableOption": "autoCreate"
+													},
+													"enableStaging": false
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_all_SqlTables",
+														"type": "DatasetReference",
+														"parameters": {
+															"tableName": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															},
+															"schema": "dbo"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_SqlTables_trg_DiffSchema",
+														"type": "DatasetReference",
+														"parameters": {
+															"t_tablename": "@item().TableName"
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_all_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/ds_SqlTables_trg_DiffSchema')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_Q1_AzureSQL_Param')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -2374,6 +3066,144 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_AzureSQL_Param')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Q20_Copy_tables_to_csv')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_SqlTables",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.10:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT TABLE_SCHEMA AS TSCHEMA, TABLE_NAME AS TABLE_NAME\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "ds_LkUp_SqlTables",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_SqlTables",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_SqlTables').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy_tables_CSV",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.10:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "01:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "FlattenHierarchy"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_all_src_SqlAdmin_TBs",
+											"type": "DatasetReference",
+											"parameters": {
+												"TableName": {
+													"value": "@item().TABLE_NAME",
+													"type": "Expression"
+												},
+												"Schema": {
+													"value": "@item().TSCHEMA",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_snk_table_csv",
+											"type": "DatasetReference",
+											"parameters": {
+												"Filname": {
+													"value": "@item().TABLE_NAME",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-assignment-4"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_LkUp_SqlTables')]",
+				"[concat(variables('factoryId'), '/datasets/DS_all_src_SqlAdmin_TBs')]",
+				"[concat(variables('factoryId'), '/datasets/DS_snk_table_csv')]"
 			]
 		},
 		{
@@ -5289,6 +6119,68 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_GreenHouseEmission_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "GreenHouseEmission.csv",
+						"folderPath": "azuredataset",
+						"fileSystem": "assignment3"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "2017 NAICS Code",
+						"type": "String"
+					},
+					{
+						"name": "2017 NAICS Title",
+						"type": "String"
+					},
+					{
+						"name": "GHG",
+						"type": "String"
+					},
+					{
+						"name": "Unit",
+						"type": "String"
+					},
+					{
+						"name": "Supply Chain Emission Factors without Margins",
+						"type": "String"
+					},
+					{
+						"name": "Margins of Supply Chain Emission Factors",
+						"type": "String"
+					},
+					{
+						"name": "Supply Chain Emission Factors with Margins",
+						"type": "String"
+					},
+					{
+						"name": "Reference USEEIO Code",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_Q15_SalesLTSalesOrderDetail')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5542,6 +6434,36 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_SqlTable_MetaData')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "TableName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "IncrementalColumn",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Table_Metadata"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_Target_File_csv')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5576,6 +6498,248 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_all_src_SqlAdmin_TBs')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					},
+					"Schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().Schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_sink_SqlAdmin_TBs')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Snk_TableName": {
+						"type": "string"
+					},
+					"Snk_Schema": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().Snk_Schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().Snk_TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_snk_table_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_AzureDataLakeStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"Filname": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().Filname",
+							"type": "Expression"
+						},
+						"folderPath": "Q20_Output",
+						"fileSystem": "assignment-4"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "Unique ID",
+						"type": "String"
+					},
+					{
+						"name": "Indicator ID",
+						"type": "String"
+					},
+					{
+						"name": "Name",
+						"type": "String"
+					},
+					{
+						"name": "Measure",
+						"type": "String"
+					},
+					{
+						"name": "Measure Info",
+						"type": "String"
+					},
+					{
+						"name": "Geo Type Name",
+						"type": "String"
+					},
+					{
+						"name": "Geo Join ID",
+						"type": "String"
+					},
+					{
+						"name": "Geo Place Name",
+						"type": "String"
+					},
+					{
+						"name": "Time Period",
+						"type": "String"
+					},
+					{
+						"name": "Start_Date",
+						"type": "String"
+					},
+					{
+						"name": "Data Value",
+						"type": "String"
+					},
+					{
+						"name": "Message",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_src_sqlProductModel')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductModelID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "PName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CatalogDescription",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowguid",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": "ProductModel"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_trg_ProductModel_TB')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_DB_Sqladmin",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductModelID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "PName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CatalogDescription",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Rowguid",
+						"type": "uniqueidentifier"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "SalesLT",
+					"table": "ProductModel"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_DB_Sqladmin')]"
 			]
 		},
 		{
@@ -5762,6 +6926,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_GreenHouseEmission_TB')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "GreenHouseEmission"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_Json')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -5928,6 +7113,40 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_AzureDataLakeStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_SqlTables_trg_DiffSchema')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Param",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"serverName": "az-sql-server-demo.database.windows.net",
+						"dbName": "DB_SALES",
+						"userName": "sqladmin",
+						"password": "Admin@12345"
+					}
+				},
+				"parameters": {
+					"t_tablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"table": {
+						"value": "@dataset().t_tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Param')]"
 			]
 		},
 		{

@@ -53,7 +53,7 @@
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_database": {
 			"type": "string",
-			"defaultValue": "master"
+			"defaultValue": "DB_SALES"
 		},
 		"LS_DB_Sqladmin_properties_typeProperties_userName": {
 			"type": "string",
@@ -276,6 +276,26 @@
 			},
 			"dependsOn": [
 				"[resourceId('Microsoft.Resources/deployments', 'adf-azure-practice12_ArmTemplate_4')]"
+			]
+		},
+		{
+			"name": "adf-azure-practice12_ArmTemplate_6",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_6.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-azure-practice12_ArmTemplate_5')]"
 			]
 		}
 	]
