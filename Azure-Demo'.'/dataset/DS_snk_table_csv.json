@@ -1,0 +1,81 @@
+{
+	"name": "DS_snk_table_csv",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Filname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().Filname",
+					"type": "Expression"
+				},
+				"folderPath": "Q20_Output",
+				"fileSystem": "assignment-4"
+			},
+			"columnDelimiter": "|",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "Unique ID",
+				"type": "String"
+			},
+			{
+				"name": "Indicator ID",
+				"type": "String"
+			},
+			{
+				"name": "Name",
+				"type": "String"
+			},
+			{
+				"name": "Measure",
+				"type": "String"
+			},
+			{
+				"name": "Measure Info",
+				"type": "String"
+			},
+			{
+				"name": "Geo Type Name",
+				"type": "String"
+			},
+			{
+				"name": "Geo Join ID",
+				"type": "String"
+			},
+			{
+				"name": "Geo Place Name",
+				"type": "String"
+			},
+			{
+				"name": "Time Period",
+				"type": "String"
+			},
+			{
+				"name": "Start_Date",
+				"type": "String"
+			},
+			{
+				"name": "Data Value",
+				"type": "String"
+			},
+			{
+				"name": "Message",
+				"type": "String"
+			}
+		]
+	}
+}
