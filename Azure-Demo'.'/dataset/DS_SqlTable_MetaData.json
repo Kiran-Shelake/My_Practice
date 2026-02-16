@@ -1,0 +1,25 @@
+{
+	"name": "DS_SqlTable_MetaData",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "TableName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "IncrementalColumn",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Table_Metadata"
+		}
+	}
+}
