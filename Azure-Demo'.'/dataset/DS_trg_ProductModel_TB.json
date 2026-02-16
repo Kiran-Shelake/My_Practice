@@ -1,0 +1,38 @@
+{
+	"name": "DS_trg_ProductModel_TB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_DB_Sqladmin",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProductModelID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "PName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CatalogDescription",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Rowguid",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ModifiedDate",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "SalesLT",
+			"table": "ProductModel"
+		}
+	}
+}
