@@ -1,5 +1,5 @@
 {
-	"name": "pl_Q19_Copy_AllTables_Incremental",
+	"name": "New_pl_Q19_Copy_AllTables_Incremental_copy1",
 	"properties": {
 		"activities": [
 			{
@@ -17,15 +17,12 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": "SELECT TableName, IncrementalColumn FROM Table_Metadata",
+						"queryTimeout": "01:00:00",
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "ds_all_SqlTables",
-						"type": "DatasetReference",
-						"parameters": {
-							"tableName": "Table_Metadata",
-							"schema": "dbo"
-						}
+						"referenceName": "DS_SqlTable_MetaData",
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}
@@ -55,7 +52,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@not(empty(item().IncrementalColumn))",
+									"value": "@not(empty(item().IncrementalColumn))\n",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
@@ -82,7 +79,9 @@
 											"sink": {
 												"type": "AzureSqlSink",
 												"writeBehavior": "insert",
-												"tableOption": "autoCreate"
+												"sqlWriterUseTableLock": false,
+												"tableOption": "autoCreate",
+												"disableMetricsCollection": false
 											},
 											"enableStaging": false
 										},
@@ -112,8 +111,8 @@
 								],
 								"ifTrueActivities": [
 									{
-										"name": "Lookup_Destination_MaxValue",
-										"type": "Lookup",
+										"name": "Copy_Incremental",
+										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
 											"retry": 0,
@@ -126,47 +125,7 @@
 											"source": {
 												"type": "AzureSqlSource",
 												"sqlReaderQuery": {
-													"value": "SELECT ISNULL(MAX(@{item().IncrementalColumn}),0) AS MaxValue FROM @{item().TableName}",
-													"type": "Expression"
-												},
-												"partitionOption": "None"
-											},
-											"dataset": {
-												"referenceName": "ds_SqlTables_trg_DiffSchema",
-												"type": "DatasetReference",
-												"parameters": {
-													"t_tablename": {
-														"value": "@item().TableName\n",
-														"type": "Expression"
-													}
-												}
-											},
-											"firstRowOnly": true
-										}
-									},
-									{
-										"name": "Copy_Incremental",
-										"type": "Copy",
-										"dependsOn": [
-											{
-												"activity": "Lookup_Destination_MaxValue",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"policy": {
-											"retry": 0,
-											"retryIntervalInSeconds": 30,
-											"secureOutput": false,
-											"secureInput": false
-										},
-										"userProperties": [],
-										"typeProperties": {
-											"source": {
-												"type": "AzureSqlSource",
-												"sqlReaderQuery": {
-													"value": "SELECT * FROM @{item().TableName} WHERE @{item().IncrementalColumn} > @{activity('Lookup_Destination_MaxValue').output.firstRow.MaxValue}",
+													"value": "SELECT * \nFROM @{item().TableName}\nWHERE @{item().IncrementalColumn} > @{item().LastCopiedValue}\n",
 													"type": "Expression"
 												},
 												"partitionOption": "None"
@@ -200,6 +159,53 @@
 												}
 											}
 										]
+									},
+									{
+										"name": "Stored procedure1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Copy_Incremental",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.10:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "dbo.Table_Metadata",
+											"storedProcedureParameters": {
+												"TableName": {
+													"value": {
+														"value": "@item().TableName",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"IncrementalColumn": {
+													"value": "@item().IncrementalColumn",
+													"type": "String"
+												},
+												"LastLoadedValue": {
+													"value": {
+														"value": "@item().LastLoadedValue",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "AzureSqlDatabase1",
+											"type": "LinkedServiceReference"
+										}
 									}
 								]
 							}
