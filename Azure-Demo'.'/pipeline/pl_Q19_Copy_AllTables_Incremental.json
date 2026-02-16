@@ -25,11 +25,198 @@
 						"referenceName": "ds_all_SqlTables",
 						"type": "DatasetReference",
 						"parameters": {
-							"tableName": "Students",
+							"tableName": "Table_Metadata",
 							"schema": "dbo"
 						}
 					},
 					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Get_Tables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Get_Tables').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(empty(item().IncrementalColumn))\n",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Copy data2",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.10:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT * FROM @{item().TableName}\n",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false,
+												"tableOption": "autoCreate",
+												"disableMetricsCollection": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_all_SqlTables",
+												"type": "DatasetReference",
+												"parameters": {
+													"tableName": "@item().TableName",
+													"schema": "dbo"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_SqlTables_trg_DiffSchema",
+												"type": "DatasetReference"
+											}
+										]
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Copy data1",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Lookup_Destination_MaxValue",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.10:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT *\nFROM @{item().TableName}\nWHERE @{item().IncrementalColumn} > \n@{activity('Lookup_Destination_MaxValue').output.firstRow.MaxValue}\n",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false,
+												"tableOption": "autoCreate",
+												"disableMetricsCollection": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_all_SqlTables",
+												"type": "DatasetReference",
+												"parameters": {
+													"tableName": {
+														"value": "@item().TableName",
+														"type": "Expression"
+													},
+													"schema": "dbo"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_SqlTables_trg_DiffSchema",
+												"type": "DatasetReference"
+											}
+										]
+									},
+									{
+										"name": "Lookup_Destination_MaxValue",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.10:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT ISNULL(MAX(@{item().IncrementalColumn}),0) AS MaxValue \nFROM @{item().TableName}\n",
+													"type": "Expression"
+												},
+												"queryTimeout": "01:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "ds_SqlTables_trg_DiffSchema",
+												"type": "DatasetReference"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
 				}
 			}
 		],
