@@ -9,7 +9,7 @@
 			"TableName": {
 				"type": "string"
 			},
-			"IncrementalColumn": {
+			"Schema": {
 				"type": "string"
 			}
 		},
@@ -17,6 +17,10 @@
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Schema",
+				"type": "Expression"
+			},
 			"table": {
 				"value": "@dataset().TableName",
 				"type": "Expression"
