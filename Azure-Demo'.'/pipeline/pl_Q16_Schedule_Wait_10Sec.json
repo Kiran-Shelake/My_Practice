@@ -1,0 +1,20 @@
+{
+	"name": "pl_Q16_Schedule_Wait_10Sec",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait_trigger",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			}
+		],
+		"folder": {
+			"name": "adf-assignment-4"
+		},
+		"annotations": []
+	}
+}
