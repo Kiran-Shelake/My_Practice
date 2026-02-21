@@ -1,5 +1,5 @@
 {
-	"name": "DS_CSV_Source",
+	"name": "DS_PJ1_CSV_Source",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_AzureDataLakeStorage1",
