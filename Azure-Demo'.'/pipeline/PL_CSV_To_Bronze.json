@@ -67,6 +67,11 @@
 									"storeSettings": {
 										"type": "AzureBlobFSReadSettings",
 										"recursive": true,
+										"wildcardFolderPath": {
+											"value": "Raw",
+											"type": "Expression"
+										},
+										"wildcardFileName": "*",
 										"enablePartitionDiscovery": false
 									},
 									"formatSettings": {
@@ -103,12 +108,12 @@
 									"referenceName": "DS_PJ1_Bronze_Parquet",
 									"type": "DatasetReference",
 									"parameters": {
-										"FolderName": {
-											"value": "bronze/@item().name",
-											"type": "Expression"
-										},
 										"FileName": {
 											"value": "@concat(replace(item().name,'.csv',''), '_', formatDateTime(utcNow(),'yyyyMMddHHmmss'))\n",
+											"type": "Expression"
+										},
+										"FolderName": {
+											"value": "@replace(item().name,'.csv','')",
 											"type": "Expression"
 										}
 									}
