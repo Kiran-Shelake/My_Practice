@@ -1,5 +1,5 @@
 {
-	"name": "DS_Bronze_Parquet",
+	"name": "DS_PJ1_Bronze_Parquet",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_AzureDataLakeStorage1",
