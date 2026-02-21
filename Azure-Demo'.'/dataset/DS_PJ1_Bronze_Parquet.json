@@ -23,7 +23,7 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "bronze/replace(@{dataset().FileName},'.csv','')",
+					"value": "bronze/@{dataset().FolderName}",
 					"type": "Expression"
 				},
 				"fileSystem": "con-healthcare-proj"
