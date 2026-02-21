@@ -104,11 +104,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FolderName": {
-											"value": "@item().name",
+											"value": "bronze/@item().name",
 											"type": "Expression"
 										},
 										"FileName": {
-											"value": "@concat(item().name, formatDateTime(utcNow(),'yyyyMMddHHmmss'))",
+											"value": "@concat(replace(item().name,'.csv',''), '_', formatDateTime(utcNow(),'yyyyMMddHHmmss'))\n",
 											"type": "Expression"
 										}
 									}
