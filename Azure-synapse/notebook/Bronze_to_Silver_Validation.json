@@ -1,0 +1,183 @@
+{
+	"name": "Bronze_to_Silver_Validation",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "projsparkpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "b9fcef82-108b-4351-9ad2-4484e26f2e97"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/49a5e15e-626c-4e4c-8752-d06f2a37c581/resourceGroups/rg_azure_practice/providers/Microsoft.Synapse/workspaces/ws-azuresynapse/bigDataPools/projsparkpool",
+				"name": "projsparkpool",
+				"type": "Spark",
+				"endpoint": "https://ws-azuresynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/projsparkpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Step 1: Read Bronze Parquet"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"bronze_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/bronze/\"\n",
+					"\n",
+					"#patients_df = spark.read.parquet(f\"{base_path}bronze/patients/\")\n",
+					"#admissions_df = spark.read.parquet(f\"{base_path}bronze/admissions/\")\n",
+					"#diagnosis_df = spark.read.parquet(f\"{base_path}bronze/diagnoses_icd/\")\n",
+					"#insurance_df = spark.read.parquet(f\"{base_path}bronze/insurance/\")\n",
+					"#doctors_df = spark.read.parquet(f\"{base_path}bronze/Doctors/\")\n",
+					"#departments_df = spark.read.parquet(f\"{base_path}bronze/Departments/\")\n",
+					"#d_icd_diagnoses = spark.read.parquet(f\"{base_path}bronze/d_icd_diagnoses/\")"
+				],
+				"execution_count": 12
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Step 2: Schema Validation"
+				]
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"##### 2.1 — Define Expected Schema"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.types import *\n",
+					"\n",
+					"all_schemas = {\n",
+					"#--patients\n",
+					"    \"patients\" : StructType([\n",
+					"        StructField(\"subject_id\", StringType(), False),  \n",
+					"        StructField(\"gender\", StringType(), True),\n",
+					"        StructField(\"anchor_age\", IntegerType(), True),\n",
+					"        StructField(\"anchor_year\", IntegerType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--admissions\n",
+					"    \"admissions\" : StructType([\n",
+					"        StructField(\"hadm_id\", StringType(), False),\n",
+					"        StructField(\"subject_id\", StringType(), False),\n",
+					"        StructField(\"admittime\", TimestampType(), True),\n",
+					"        StructField(\"dischtime\", TimestampType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--diagnosis_icd\n",
+					"    \"diagnoses_icd\" : StructType([\n",
+					"        StructField(\"hadm_id\", StringType(), False),\n",
+					"        StructField(\"icd_code\", StringType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--d_icd_diagnoses\n",
+					"    \"d_icd_diagnoses\" : StructType([\n",
+					"        StructField(\"icd_code\", StringType(), True),\n",
+					"        StructField(\"long_title\", StringType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--insurance\n",
+					"    \"insurance\" : StructType([\n",
+					"        StructField(\"age\", IntegerType(), True),\n",
+					"        StructField(\"sex\", StringType(),True),\n",
+					"        StructField(\"bmi\", DoubleType(),True),\n",
+					"        StructField(\"children\", IntegerType(), True),\n",
+					"        StructField(\"smoker\", StringType(),True),\n",
+					"        StructField(\"region\", StringType(), True),\n",
+					"        StructField(\"charges\", DoubleType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--doctors\n",
+					"    \"Doctors\" : StructType([\n",
+					"        StructField(\"doctors_id\", StringType(),False),\n",
+					"        StructField(\"doctor_name\", StringType(),True),\n",
+					"        StructField(\"specialization\", StringType(), True),\n",
+					"        StructField(\"experience_years\", IntegerType(), True),\n",
+					"        StructField(\"qualification\", StringType(),True),\n",
+					"        StructField(\"joining_date\", DateType(), True),\n",
+					"        StructField(\"city\", StringType(), True),\n",
+					"        StructField(\"active_flag\", StringType(), True)\n",
+					"    ]),\n",
+					"\n",
+					"#--departments\n",
+					"    \"Departments\" : StructType([\n",
+					"        StructField(\"department_id\", StringType(), True),\n",
+					"        StructField(\"department_name\", StringType(), True),\n",
+					"        StructField(\"department_head\", StringType(), True),\n",
+					"        StructField(\"floor_number\", IntegerType(), True),\n",
+					"        StructField(\"building\", StringType(), True),\n",
+					"        StructField(\"contact_number\", StringType(), True),\n",
+					"        StructField(\"opening_time\", StringType(), True),\n",
+					"        StructField(\"closing_time\", StringType(), True),\n",
+					"        StructField(\"active_flag\", StringType(), True), \n",
+					"    ])\n",
+					"}\n",
+					"\n",
+					"\n",
+					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\")"
+				],
+				"execution_count": 18
+			}
+		]
+	}
+}
