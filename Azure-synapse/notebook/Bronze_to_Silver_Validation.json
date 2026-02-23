@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "2cf43a3f-9cc7-4f33-99b2-fa0d12db8b0b"
+				"spark.autotune.trackingId": "20003880-7cc9-4aa4-8664-9fce29446430"
 			}
 		},
 		"metadata": {
@@ -72,9 +72,11 @@
 					"insurance_df = spark.read.parquet(f\"{bronze_path}insurance/\")\n",
 					"doctors_df = spark.read.parquet(f\"{bronze_path}Doctors/\")\n",
 					"departments_df = spark.read.parquet(f\"{bronze_path}Departments/\")\n",
-					"d_icd_diagnoses = spark.read.parquet(f\"{bronze_path}d_icd_diagnoses/\")"
+					"d_icd_diagnoses = spark.read.parquet(f\"{bronze_path}d_icd_diagnoses/\")\n",
+					"\n",
+					"diagnosis_df.show()"
 				],
-				"execution_count": 33
+				"execution_count": 39
 			},
 			{
 				"cell_type": "markdown",
@@ -212,9 +214,7 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"\n",
 					"expected_schema = all_schemas[\"admissions\"]\n",
-					"\n",
 					"admissions_df = admissions_df.withColumn(\"admittime\",col(\"admittime\").cast(\"timestamp\"))\n",
 					"admissions_df.show()\n",
 					"\n",
@@ -222,7 +222,7 @@
 					"    if field.name not in admissions_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": null
+				"execution_count": 35
 			}
 		]
 	}
