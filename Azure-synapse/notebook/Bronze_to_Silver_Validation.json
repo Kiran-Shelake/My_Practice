@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "b9fcef82-108b-4351-9ad2-4484e26f2e97"
+				"spark.autotune.trackingId": "5529b250-bdae-4a2e-9921-3bb3aa7ca80f"
 			}
 		},
 		"metadata": {
@@ -66,15 +66,15 @@
 				"source": [
 					"bronze_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/bronze/\"\n",
 					"\n",
-					"#patients_df = spark.read.parquet(f\"{base_path}bronze/patients/\")\n",
-					"#admissions_df = spark.read.parquet(f\"{base_path}bronze/admissions/\")\n",
-					"#diagnosis_df = spark.read.parquet(f\"{base_path}bronze/diagnoses_icd/\")\n",
-					"#insurance_df = spark.read.parquet(f\"{base_path}bronze/insurance/\")\n",
-					"#doctors_df = spark.read.parquet(f\"{base_path}bronze/Doctors/\")\n",
-					"#departments_df = spark.read.parquet(f\"{base_path}bronze/Departments/\")\n",
-					"#d_icd_diagnoses = spark.read.parquet(f\"{base_path}bronze/d_icd_diagnoses/\")"
+					"patients_df = spark.read.parquet(f\"{bronze_path}patients/\")\n",
+					"admissions_df = spark.read.parquet(f\"{bronze_path}admissions/\")\n",
+					"diagnosis_df = spark.read.parquet(f\"{bronze_path}diagnoses_icd/\")\n",
+					"insurance_df = spark.read.parquet(f\"{bronze_path}insurance/\")\n",
+					"doctors_df = spark.read.parquet(f\"{bronze_path}Doctors/\")\n",
+					"departments_df = spark.read.parquet(f\"{bronze_path}Departments/\")\n",
+					"d_icd_diagnoses = spark.read.parquet(f\"{bronze_path}d_icd_diagnoses/\")"
 				],
-				"execution_count": 12
+				"execution_count": 26
 			},
 			{
 				"cell_type": "markdown",
@@ -176,7 +176,31 @@
 					"\n",
 					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\")"
 				],
-				"execution_count": 18
+				"execution_count": 27
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 2.2 - Validation"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"patients\"]\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in patients_df.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")"
+				],
+				"execution_count": 28
 			}
 		]
 	}
