@@ -13,6 +13,332 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_Copy_with_SQL_server_parameter')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy demo 2 data sqlserver",
+						"description": "with SQL db-server and Parameters",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "db_azuresqlServer",
+								"type": "DatasetReference",
+								"parameters": {
+									"SRC_schemaName": {
+										"value": "@pipeline().parameters.pl_para_src_schemaName",
+										"type": "Expression"
+									},
+									"SRC_tableName": {
+										"value": "@pipeline().parameters.pl_para_src_tableName",
+										"type": "Expression"
+									},
+									"SRC_dbName": {
+										"value": "@pipeline().parameters.pl_para_src_dbName",
+										"type": "Expression"
+									},
+									"SRC_serverName": {
+										"value": "@pipeline().parameters.pl_para_src_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "db_sqlserver_destination",
+								"type": "DatasetReference",
+								"parameters": {
+									"TRG_schemaName": {
+										"value": "@pipeline().parameters.pl_para_trg_schemaName",
+										"type": "Expression"
+									},
+									"TRG_tableName": {
+										"value": "@pipeline().parameters.pl_para_trg_tableName",
+										"type": "Expression"
+									},
+									"TRG_dbName": {
+										"value": "@pipeline().parameters.pl_para_trg_dbName",
+										"type": "Expression"
+									},
+									"TRG_serverName": {
+										"value": "@pipeline().parameters.pl_para_trg_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_para_src_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_src_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_src_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_src_tableName": {
+						"type": "string",
+						"defaultValue": "Employee_Info"
+					},
+					"pl_para_trg_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_trg_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_trg_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_trg_tableName": {
+						"type": "string",
+						"defaultValue": "Trg_Employee_Info"
+					}
+				},
+				"folder": {
+					"name": "adf-practice"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Copy_with_SQL_server_parameter_precopy_script')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy demo 2 data sqlserver",
+						"description": "with SQL db-server and Parameters",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "01:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": {
+									"value": "@concat('TRUNCATE TABLE ', pipeline().parameters.pl_para_trg_schemaName, '.', pipeline().parameters.pl_para_trg_tableName)",
+									"type": "Expression"
+								},
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "db_azuresqlServer",
+								"type": "DatasetReference",
+								"parameters": {
+									"SRC_schemaName": {
+										"value": "@pipeline().parameters.pl_para_src_schemaName",
+										"type": "Expression"
+									},
+									"SRC_tableName": {
+										"value": "@pipeline().parameters.pl_para_src_tableName",
+										"type": "Expression"
+									},
+									"SRC_dbName": {
+										"value": "@pipeline().parameters.pl_para_src_dbName",
+										"type": "Expression"
+									},
+									"SRC_serverName": {
+										"value": "@pipeline().parameters.pl_para_src_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "db_sqlserver_destination",
+								"type": "DatasetReference",
+								"parameters": {
+									"TRG_schemaName": {
+										"value": "@pipeline().parameters.pl_para_trg_schemaName",
+										"type": "Expression"
+									},
+									"TRG_tableName": {
+										"value": "@pipeline().parameters.pl_para_trg_tableName",
+										"type": "Expression"
+									},
+									"TRG_dbName": {
+										"value": "@pipeline().parameters.pl_para_trg_dbName",
+										"type": "Expression"
+									},
+									"TRG_serverName": {
+										"value": "@pipeline().parameters.pl_para_trg_serverName",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_para_src_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_src_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_src_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_src_tableName": {
+						"type": "string",
+						"defaultValue": "Employee_Info"
+					},
+					"pl_para_trg_serverName": {
+						"type": "string",
+						"defaultValue": "mysql-db-server.database.windows.net"
+					},
+					"pl_para_trg_dbName": {
+						"type": "string",
+						"defaultValue": "free-sql-db"
+					},
+					"pl_para_trg_schemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"pl_para_trg_tableName": {
+						"type": "string",
+						"defaultValue": "Trg_Employee_Info"
+					}
+				},
+				"folder": {
+					"name": "adf-practice"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_Dataflow_Split_Condition')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow_conditional_split_CaseStatement",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sinkHRDepart": {},
+									"sinkITDepart": {},
+									"sinkShippingDepart": {},
+									"sinkOtherDepart": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Coarse"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "adf-practice"
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/pl_Dataflow_demo_2')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -689,7 +1015,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_Copy_with_SQL_server_parameter')]"
+			]
 		}
 	]
 }
