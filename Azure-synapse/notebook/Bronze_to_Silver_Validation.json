@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3b83947c-6b10-4137-8ea3-f2fdc4e48209"
+				"spark.autotune.trackingId": "8e0fd1d3-81aa-4794-9d7f-1fd135bfb14e"
 			}
 		},
 		"metadata": {
@@ -149,8 +149,8 @@
 					"    ]),\n",
 					"\n",
 					"#--doctors\n",
-					"    \"Doctors\" : StructType([\n",
-					"        StructField(\"doctors_id\", StringType(),False),\n",
+					"    \"doctors\" : StructType([\n",
+					"        StructField(\"doctor_id\", StringType(),False),\n",
 					"        StructField(\"doctor_name\", StringType(),True),\n",
 					"        StructField(\"specialization\", StringType(), True),\n",
 					"        StructField(\"experience_years\", IntegerType(), True),\n",
@@ -161,7 +161,7 @@
 					"    ]),\n",
 					"\n",
 					"#--departments\n",
-					"    \"Departments\" : StructType([\n",
+					"    \"departments\" : StructType([\n",
 					"        StructField(\"department_id\", StringType(), True),\n",
 					"        StructField(\"department_name\", StringType(), True),\n",
 					"        StructField(\"department_head\", StringType(), True),\n",
@@ -177,7 +177,7 @@
 					"\n",
 					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\") --> Manually defining schema is correct, But NOT while reading Parquet."
 				],
-				"execution_count": 2
+				"execution_count": 17
 			},
 			{
 				"cell_type": "markdown",
@@ -189,7 +189,7 @@
 					}
 				},
 				"source": [
-					"#### 2.2 - Validation"
+					"#### 2.2 - Schema Validation"
 				]
 			},
 			{
@@ -201,7 +201,7 @@
 					"\n",
 					"patients_df = patients_df.withColumn(\"anchor_age\",col(\"anchor_age\").cast(\"int\"))\n",
 					"#patients_df = patients_df.drop(\"gender\") \n",
-					"patients_df.show()\n",
+					"#patients_df.show()\n",
 					"\n",
 					"for field in expected_schema:\n",
 					"    if field.name not in patients_df.columns:\n",
@@ -215,13 +215,71 @@
 				"source": [
 					"expected_schema = all_schemas[\"admissions\"]\n",
 					"admissions_df = admissions_df.withColumn(\"admittime\",col(\"admittime\").cast(\"timestamp\"))\n",
-					"admissions_df.show(truncate=False)\n",
+					"#admissions_df.show(truncate=False)\n",
 					"\n",
 					"for field in expected_schema:\n",
 					"    if field.name not in admissions_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
 				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"diagnoses_icd\"]\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in diagnosis_df.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"d_icd_diagnoses\"]\n",
+					"\n",
+					"d_icd_diagnoses = d_icd_diagnoses.filter(col(\"icd_code\").isNotNull()).dropDuplicates([\"icd_code\"])\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in d_icd_diagnoses.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")\n",
+					""
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"insurance\"]\n",
+					"\n",
+					"insurance_df = insurance_df.filter(col(\"charges\") > 0)\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in insurance_df.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")\n",
+					"\n",
+					""
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"doctors\"]\n",
+					"doctors_df.show()\n",
+					"doctors_df = doctors_df.filter((col(\"doctor_id\").isNotNull()) & (col(\"active_flag\").isin(\"Y\", \"N\"))).dropDuplicates([\"doctor_id\"])\n",
+					"\n",
+					"if doctors_df.filter(~col(\"active_flag\").isin(\"Y\", \"N\")).count() > 0:\n",
+					"    raise Exception(\"Invalid value in active_flag column. It must be Y or N\")\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in doctors_df.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")\n",
+					"\n",
+					""
+				],
+				"execution_count": 18
 			}
 		]
 	}
