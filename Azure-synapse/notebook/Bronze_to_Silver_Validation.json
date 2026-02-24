@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "8e0fd1d3-81aa-4794-9d7f-1fd135bfb14e"
+				"spark.autotune.trackingId": "03602f88-b814-4e06-9847-5422eac5951c"
 			}
 		},
 		"metadata": {
@@ -177,7 +177,7 @@
 					"\n",
 					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\") --> Manually defining schema is correct, But NOT while reading Parquet."
 				],
-				"execution_count": 17
+				"execution_count": 22
 			},
 			{
 				"cell_type": "markdown",
@@ -267,7 +267,7 @@
 				"cell_type": "code",
 				"source": [
 					"expected_schema = all_schemas[\"doctors\"]\n",
-					"doctors_df.show()\n",
+					"\n",
 					"doctors_df = doctors_df.filter((col(\"doctor_id\").isNotNull()) & (col(\"active_flag\").isin(\"Y\", \"N\"))).dropDuplicates([\"doctor_id\"])\n",
 					"\n",
 					"if doctors_df.filter(~col(\"active_flag\").isin(\"Y\", \"N\")).count() > 0:\n",
@@ -280,6 +280,22 @@
 					""
 				],
 				"execution_count": 18
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"expected_schema = all_schemas[\"departments\"]\n",
+					"\n",
+					"departments_df = departments_df.filter((col(\"department_id\").isNotNull()) & (col(\"active_flag\").isin(\"Y\", \"N\"))).dropDuplicates([\"department_id\"])\n",
+					"\n",
+					"if doctors_df.filter(~col(\"active_flag\").isin(\"Y\", \"N\")).count() > 0:\n",
+					"    raise Exception(\"Invalid value in active_flag column. It must be Y or N\")\n",
+					"\n",
+					"for field in expected_schema:\n",
+					"    if field.name not in departments_df.columns:\n",
+					"        raise Exception(f\"Missing column {field.name}\")"
+				],
+				"execution_count": 24
 			}
 		]
 	}
