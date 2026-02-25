@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d007aa31-06e0-4c23-83ec-6a2c06ec2275"
+				"spark.autotune.trackingId": "0ff5b3b9-c6a2-4742-9359-fc8b5d39c2ad"
 			}
 		},
 		"metadata": {
@@ -75,7 +75,7 @@
 					"d_icd_diagnoses = spark.read.parquet(f\"{bronze_path}d_icd_diagnoses/\")\n",
 					""
 				],
-				"execution_count": 1
+				"execution_count": 2
 			},
 			{
 				"cell_type": "markdown",
@@ -177,7 +177,7 @@
 					"\n",
 					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\") --> Manually defining schema is correct, But NOT while reading Parquet."
 				],
-				"execution_count": 22
+				"execution_count": 3
 			},
 			{
 				"cell_type": "markdown",
@@ -208,7 +208,7 @@
 					"        raise Exception(f\"Missing column {field.name}\")\n",
 					""
 				],
-				"execution_count": 3
+				"execution_count": 4
 			},
 			{
 				"cell_type": "code",
@@ -221,7 +221,7 @@
 					"    if field.name not in admissions_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 4
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -232,7 +232,7 @@
 					"    if field.name not in diagnosis_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 5
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -261,7 +261,7 @@
 					"\n",
 					""
 				],
-				"execution_count": 9
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
@@ -279,7 +279,7 @@
 					"\n",
 					""
 				],
-				"execution_count": 18
+				"execution_count": 9
 			},
 			{
 				"cell_type": "code",
@@ -296,7 +296,7 @@
 					"    if field.name not in departments_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 24
+				"execution_count": 10
 			},
 			{
 				"cell_type": "markdown",
@@ -308,15 +308,18 @@
 					}
 				},
 				"source": [
-					"#### PRIMARY KEY VALIDATION"
+					"#### 2.3 - Primary Key Validation"
 				]
 			},
 			{
 				"cell_type": "code",
 				"source": [
-					""
+					"#-- Patients\n",
+					"\n",
+					"if patients_df.groupBy(\"subject_id\").count().filter(\"count > 1\").count() > 0:\n",
+					"    raise Exception(\"Duplicate subject_id found\")"
 				],
-				"execution_count": null
+				"execution_count": 11
 			},
 			{
 				"cell_type": "code",
