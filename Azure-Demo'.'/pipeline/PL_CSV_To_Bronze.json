@@ -85,7 +85,23 @@
 								"sink": {
 									"type": "ParquetSink",
 									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
+										"type": "AzureBlobFSWriteSettings",
+										"metadata": [
+											{
+												"name": "ingestion_date",
+												"value": {
+													"value": "@formatDateTime(utcNow(),'yyyy-MM-dd')",
+													"type": "Expression"
+												}
+											},
+											{
+												"name": "load_timestamp",
+												"value": {
+													"value": "@utcNow()",
+													"type": "Expression"
+												}
+											}
+										]
 									},
 									"formatSettings": {
 										"type": "ParquetWriteSettings"
@@ -112,7 +128,10 @@
 									"referenceName": "DS_PJ1_Bronze_Parquet",
 									"type": "DatasetReference",
 									"parameters": {
-										"FileName": "@concat(replace(item().name,'.csv',''), '_', formatDateTime(utcNow(),'yyyyMMddHHmmss'), '.parquet')",
+										"FileName": {
+											"value": "ingestion_date = @formatDateTime(utcNow(),'yyyy-MM-dd')",
+											"type": "Expression"
+										},
 										"FolderName": "@replace(item().name,'.csv','')"
 									}
 								}
