@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "03602f88-b814-4e06-9847-5422eac5951c"
+				"spark.autotune.trackingId": "d007aa31-06e0-4c23-83ec-6a2c06ec2275"
 			}
 		},
 		"metadata": {
@@ -284,6 +284,7 @@
 			{
 				"cell_type": "code",
 				"source": [
+					"\n",
 					"expected_schema = all_schemas[\"departments\"]\n",
 					"\n",
 					"departments_df = departments_df.filter((col(\"department_id\").isNotNull()) & (col(\"active_flag\").isin(\"Y\", \"N\"))).dropDuplicates([\"department_id\"])\n",
@@ -296,6 +297,40 @@
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
 				"execution_count": 24
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### PRIMARY KEY VALIDATION"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
 			}
 		]
 	}
