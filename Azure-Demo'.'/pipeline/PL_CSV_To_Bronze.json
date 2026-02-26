@@ -128,11 +128,10 @@
 									"referenceName": "DS_PJ1_Bronze_Parquet",
 									"type": "DatasetReference",
 									"parameters": {
-										"FileName": {
-											"value": "@concat('ingestion_date=', formatDateTime(utcNow(),'yyyy-MM-dd'))\n\n",
+										"FolderName": {
+											"value": "@concat(replace(item().name,'.csv',''), '/', formatDateTime(utcNow(),'yyyy-MM-dd'))",
 											"type": "Expression"
-										},
-										"FolderName": "@replace(item().name,'.csv','')"
+										}
 									}
 								}
 							]
