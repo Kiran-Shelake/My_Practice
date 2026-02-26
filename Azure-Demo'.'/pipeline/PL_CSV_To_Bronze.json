@@ -131,6 +131,10 @@
 										"FolderName": {
 											"value": "@replace(item().name,'.csv','')",
 											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@concat(formatDateTime(utcNow()), '.parquet')",
+											"type": "Expression"
 										}
 									}
 								}
