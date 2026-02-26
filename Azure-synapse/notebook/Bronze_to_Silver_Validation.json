@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "269c5c01-7bac-4c77-8768-ebd7fec7a703"
+				"spark.autotune.trackingId": "45ee9b9a-88ee-4b9a-b0b0-e69bb96a2e00"
 			}
 		},
 		"metadata": {
@@ -58,7 +58,7 @@
 					}
 				},
 				"source": [
-					"### Step 1: Read Bronze Parquet"
+					"### Step 1: Read Bronze Parquet & Add Load Columns"
 				]
 			},
 			{
@@ -73,9 +73,25 @@
 					"doctors_df = spark.read.parquet(f\"{bronze_path}Doctors/\")\n",
 					"departments_df = spark.read.parquet(f\"{bronze_path}Departments/\")\n",
 					"d_icd_diagnoses = spark.read.parquet(f\"{bronze_path}d_icd_diagnoses/\")\n",
+					"\n",
+					"\n",
+					"from pyspark.sql.functions import current_timestamp, lit\n",
+					"\n",
+					"patients_df = patients_df.withColumn(\"ingestion_date\", lit(\"0000-00-00\")) \\\n",
+					"                        .withColumn(\"load_timestamp\", current_timestamp())\n",
+					"\n",
+					"\n",
+					"\n",
 					""
 				],
-				"execution_count": 1
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					""
+				],
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -177,7 +193,7 @@
 					"\n",
 					"#patients_df = spark.read.schema(patients_schema).parquet(bronze_path + \"patients/\") --> Manually defining schema is correct, But NOT while reading Parquet."
 				],
-				"execution_count": 2
+				"execution_count": 4
 			},
 			{
 				"cell_type": "markdown",
@@ -208,7 +224,7 @@
 					"        raise Exception(f\"Missing column {field.name}\")\n",
 					""
 				],
-				"execution_count": 3
+				"execution_count": 5
 			},
 			{
 				"cell_type": "code",
@@ -221,7 +237,7 @@
 					"    if field.name not in admissions_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 4
+				"execution_count": 6
 			},
 			{
 				"cell_type": "code",
@@ -232,7 +248,7 @@
 					"    if field.name not in diagnosis_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 5
+				"execution_count": 7
 			},
 			{
 				"cell_type": "code",
@@ -246,7 +262,7 @@
 					"        raise Exception(f\"Missing column {field.name}\")\n",
 					""
 				],
-				"execution_count": 6
+				"execution_count": 8
 			},
 			{
 				"cell_type": "code",
@@ -261,7 +277,7 @@
 					"\n",
 					""
 				],
-				"execution_count": 7
+				"execution_count": 9
 			},
 			{
 				"cell_type": "code",
@@ -279,7 +295,7 @@
 					"\n",
 					""
 				],
-				"execution_count": 8
+				"execution_count": 10
 			},
 			{
 				"cell_type": "code",
@@ -296,7 +312,7 @@
 					"    if field.name not in departments_df.columns:\n",
 					"        raise Exception(f\"Missing column {field.name}\")"
 				],
-				"execution_count": 9
+				"execution_count": 11
 			},
 			{
 				"cell_type": "markdown",
@@ -319,7 +335,7 @@
 					"if patients_df.groupBy(\"subject_id\").count().filter(\"count > 1\").count() > 0:\n",
 					"    raise Exception(\"Duplicate subject_id found\")"
 				],
-				"execution_count": 10
+				"execution_count": 12
 			},
 			{
 				"cell_type": "code",
