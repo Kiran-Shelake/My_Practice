@@ -129,7 +129,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FileName": {
-											"value": "ingestion_date = @formatDateTime(utcNow(),'yyyy-MM-dd')",
+											"value": "@concat('ingestion_date=', formatDateTime(utcNow(),'yyyy-MM-dd'))\n\n",
 											"type": "Expression"
 										},
 										"FolderName": "@replace(item().name,'.csv','')"
