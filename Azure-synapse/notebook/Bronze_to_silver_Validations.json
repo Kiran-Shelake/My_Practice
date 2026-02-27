@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "93c1562b-a9ec-4651-ae28-a3484885394a"
+				"spark.autotune.trackingId": "40037114-2ccf-4f88-b8ec-b3c0ef2e8d0f"
 			}
 		},
 		"metadata": {
@@ -359,9 +359,9 @@
 					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"\n",
 					"new_data.show()\n",
-					"#new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")"
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")"
 				],
-				"execution_count": null
+				"execution_count": 118
 			},
 			{
 				"cell_type": "code",
@@ -371,7 +371,7 @@
 					"\n",
 					"new_data = admissions_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")"
 				],
 				"execution_count": 110
@@ -383,7 +383,7 @@
 					"\n",
 					"new_data = diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")"
 				],
 				"execution_count": 111
@@ -395,7 +395,7 @@
 					"\n",
 					"new_data = d_icd_diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")"
 				],
 				"execution_count": 112
@@ -407,7 +407,7 @@
 					"\n",
 					"new_data = insurance_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")"
 				],
 				"execution_count": 113
@@ -419,7 +419,7 @@
 					"\n",
 					"new_data = doctors_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")"
 				],
 				"execution_count": 114
@@ -431,7 +431,7 @@
 					"\n",
 					"new_data = departments_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_data = new_data.repartition(4)\n",
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
 					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")"
 				],
 				"execution_count": 115
