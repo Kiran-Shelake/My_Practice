@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "bb411b42-c473-4cf3-b790-fa7a163f2a38"
+				"spark.autotune.trackingId": "93c1562b-a9ec-4651-ae28-a3484885394a"
 			}
 		},
 		"metadata": {
@@ -56,7 +56,7 @@
 					"reject_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/reject/\"\n",
 					"audit_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/audit/\""
 				],
-				"execution_count": 38
+				"execution_count": 97
 			},
 			{
 				"cell_type": "markdown",
@@ -83,7 +83,7 @@
 					"departments_df = spark.read.parquet(bronze_path + \"Departments/\")\n",
 					""
 				],
-				"execution_count": 39
+				"execution_count": 98
 			},
 			{
 				"cell_type": "markdown",
@@ -125,7 +125,7 @@
 					"    window = Window.partitionBy(key_col).orderBy(col(order_col).desc())\n",
 					"    return df.withColumn(\"rn\", row_number().over(window)).filter(\"rn = 1\").drop(\"rn\")"
 				],
-				"execution_count": 40
+				"execution_count": 99
 			},
 			{
 				"cell_type": "markdown",
@@ -162,7 +162,7 @@
 					"    )\n",
 					"    return df"
 				],
-				"execution_count": 52
+				"execution_count": 100
 			},
 			{
 				"cell_type": "markdown",
@@ -195,7 +195,7 @@
 					"patients_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")\n",
 					""
 				],
-				"execution_count": 55
+				"execution_count": 101
 			},
 			{
 				"cell_type": "code",
@@ -219,7 +219,7 @@
 					"\n",
 					"#admissions_df.show()"
 				],
-				"execution_count": 42
+				"execution_count": 102
 			},
 			{
 				"cell_type": "code",
@@ -236,7 +236,7 @@
 					"insurance_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")\n",
 					"#insurance_df.show()"
 				],
-				"execution_count": 43
+				"execution_count": 103
 			},
 			{
 				"cell_type": "code",
@@ -254,7 +254,7 @@
 					"\n",
 					"#doctors_df.show()"
 				],
-				"execution_count": 44
+				"execution_count": 104
 			},
 			{
 				"cell_type": "code",
@@ -273,7 +273,7 @@
 					"\n",
 					"#departments_df.show()"
 				],
-				"execution_count": 45
+				"execution_count": 105
 			},
 			{
 				"cell_type": "code",
@@ -290,7 +290,7 @@
 					"\n",
 					"#diagnosis_df.show()"
 				],
-				"execution_count": 46
+				"execution_count": 106
 			},
 			{
 				"cell_type": "code",
@@ -305,7 +305,7 @@
 					"#d_icd_diagnosis_df.show()\n",
 					""
 				],
-				"execution_count": 47
+				"execution_count": 107
 			},
 			{
 				"cell_type": "markdown",
@@ -323,15 +323,15 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"silver_patients_df = spark.read.format(\"delta\").load(silver_path + \"patients/\")\n",
-					"silver_admissions_df = spark.read.format(\"delta\").load(silver_path + \"admissions/\")\n",
-					"silver_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"diagnoses_icd/\")\n",
-					"silver_d_icd_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"d_icd_diagnoses/\")\n",
-					"silver_insurance_df = spark.read.format(\"delta\").load(silver_path + \"insurance/\")\n",
+					"silver_patients_df = spark.read.format(\"delta\").load(silver_path + \"Patients/\")\n",
+					"silver_admissions_df = spark.read.format(\"delta\").load(silver_path + \"Admissions/\")\n",
+					"silver_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"Diagnoses_icd/\")\n",
+					"silver_d_icd_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"D_icd_diagnoses/\")\n",
+					"silver_insurance_df = spark.read.format(\"delta\").load(silver_path + \"Insurance/\")\n",
 					"silver_doctors_df = spark.read.format(\"delta\").load(silver_path + \"Doctors/\")\n",
 					"silver_departments_df = spark.read.format(\"delta\").load(silver_path + \"Departments/\")"
 				],
-				"execution_count": null
+				"execution_count": 108
 			},
 			{
 				"cell_type": "markdown",
@@ -351,17 +351,90 @@
 				"source": [
 					"from pyspark.sql.functions import max, col\n",
 					"\n",
-					"silver_patients_df = spark.read.format(\"delta\").load(silver_path +  \"Patients/\")\n",
-					"\n",
-					"last_ts = silver_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
+					"last_ts = silver_patients_df.agg(max(\"file_ts\")).collect()[0][0]\n",
 					"#print(\"Last Processed:\", last_ts)\n",
 					"\n",
-					"new_silver_patients = patients_df.filter(col(\"file_ts\") > last_ts)\n",
+					"new_data = patients_df.filter(col(\"file_ts\") > last_ts)\n",
 					"\n",
-					"new_silver_patients.write.format(\"delta\").mode(\"append\").save(silver_path +  \"Patients/\")"
+					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
+					"\n",
+					"new_data.show()\n",
+					"#new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")"
 				],
-				"execution_count": 58
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"\n",
+					"last_ts = silver_admissions_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = admissions_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")"
+				],
+				"execution_count": 110
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"last_ts = silver_diagnosis_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")"
+				],
+				"execution_count": 111
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"last_ts = silver_d_icd_diagnosis_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = d_icd_diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")"
+				],
+				"execution_count": 112
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"last_ts = silver_insurance_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = insurance_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")"
+				],
+				"execution_count": 113
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"last_ts = silver_doctors_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = doctors_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")"
+				],
+				"execution_count": 114
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"last_ts = silver_departments_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"new_data = departments_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.repartition(4)\n",
+					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")"
+				],
+				"execution_count": 115
 			}
 		]
 	}
