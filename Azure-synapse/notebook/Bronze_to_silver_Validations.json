@@ -1,0 +1,368 @@
+{
+	"name": "Bronze_to_silver_Validations",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "projsparkpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "bb411b42-c473-4cf3-b790-fa7a163f2a38"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/49a5e15e-626c-4e4c-8752-d06f2a37c581/resourceGroups/rg_azure_practice/providers/Microsoft.Synapse/workspaces/ws-azuresynapse/bigDataPools/projsparkpool",
+				"name": "projsparkpool",
+				"type": "Spark",
+				"endpoint": "https://ws-azuresynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/projsparkpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"bronze_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/bronze/\"\n",
+					"silver_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/\"\n",
+					"reject_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/reject/\"\n",
+					"audit_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/audit/\""
+				],
+				"execution_count": 38
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 1. Reading Bronze files"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"patients_df = spark.read.parquet(bronze_path + \"patients/\")\n",
+					"admissions_df = spark.read.parquet(bronze_path + \"admissions/\")\n",
+					"diagnosis_df = spark.read.parquet(bronze_path + \"diagnoses_icd/\")\n",
+					"d_icd_diagnosis_df = spark.read.parquet(bronze_path + \"d_icd_diagnoses/\")\n",
+					"insurance_df = spark.read.parquet(bronze_path + \"insurance/\")\n",
+					"doctors_df = spark.read.parquet(bronze_path + \"Doctors/\")\n",
+					"departments_df = spark.read.parquet(bronze_path + \"Departments/\")\n",
+					""
+				],
+				"execution_count": 39
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 2. Reusable code"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import col, row_number\n",
+					"from pyspark.sql.window import Window\n",
+					"\n",
+					"# -- Schema validation \n",
+					"def validate_columns(df, expected_cols, table_name):\n",
+					"    for col_name in expected_cols:\n",
+					"        if col_name not in df.columns:\n",
+					"            raise Exception(f\"{table_name}: Missing column {col_name}\")\n",
+					"\n",
+					"# -- Mandatory Field Check\n",
+					"def check_not_null(df, column_name, table_name):\n",
+					"    if df.filter(col(column_name).isNull()).count() > 0:\n",
+					"        raise Exception(f\"{table_name}: Null found in {column_name}\")\n",
+					"\n",
+					"# -- Primary Key Validation\n",
+					"def validate_primary_key(df, column_name, table_name):\n",
+					"    if df.groupBy(column_name).count().filter(\"count > 1\").count() > 0:\n",
+					"        raise Exception(f\"{table_name}: Duplicate {column_name} found\")\n",
+					"\n",
+					"# -- Deduplication\n",
+					"def deduplicate(df, key_col, order_col):\n",
+					"    window = Window.partitionBy(key_col).orderBy(col(order_col).desc())\n",
+					"    return df.withColumn(\"rn\", row_number().over(window)).filter(\"rn = 1\").drop(\"rn\")"
+				],
+				"execution_count": 40
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### 3. Add File Timestamp Column"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import input_file_name, regexp_extract, to_timestamp\n",
+					"\n",
+					"def add_file_timestamp(df):\n",
+					"    \n",
+					"    df = df.withColumn(\"file_path\", input_file_name())\n",
+					"    \n",
+					"    df = df.withColumn(\n",
+					"        \"file_ts_str\",\n",
+					"        regexp_extract(\"file_path\",\n",
+					"                       r\"(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})\",\n",
+					"                       1)\n",
+					"    )\n",
+					"    \n",
+					"    df = df.withColumn(\n",
+					"        \"file_ts\",\n",
+					"        to_timestamp(\"file_ts_str\", \"yyyy-MM-dd'T'HH:mm:ss\")\n",
+					"    )\n",
+					"    return df"
+				],
+				"execution_count": 52
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 4. Standardize & Validation of Each Dataset"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- Patients\n",
+					"patients_df = add_file_timestamp(patients_df)\n",
+					"\n",
+					"patients_df = patients_df \\\n",
+					"    .withColumnRenamed(\"subject_id\",\"patient_id\") \\\n",
+					"    .withColumn(\"patient_id\", col(\"patient_id\").cast(\"string\")) \\\n",
+					"    .withColumn(\"anchor_age\", col(\"anchor_age\").cast(\"int\"))\n",
+					"\n",
+					"validate_columns(patients_df, [\"patient_id\",\"gender\",\"anchor_age\"], \"patients\")\n",
+					"check_not_null(patients_df, \"patient_id\", \"patients\")\n",
+					"validate_primary_key(patients_df, \"patient_id\", \"patients\")\n",
+					"\n",
+					"patients_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")\n",
+					""
+				],
+				"execution_count": 55
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- admissions\n",
+					"admissions_df = add_file_timestamp(admissions_df)\n",
+					"\n",
+					"admissions_df = admissions_df \\\n",
+					"    .withColumnRenamed(\"hadm_id\",\"visit_id\") \\\n",
+					"    .withColumnRenamed(\"subject_id\",\"patient_id\") \\\n",
+					"    .withColumn(\"visit_id\", col(\"visit_id\").cast(\"string\")) \\\n",
+					"    .withColumn(\"admittime\", col(\"admittime\").cast(\"timestamp\"))\n",
+					"\n",
+					"validate_columns(admissions_df, [\"visit_id\",\"patient_id\",\"admittime\"], \"admissions\")\n",
+					"check_not_null(admissions_df, \"visit_id\", \"admissions\")\n",
+					"validate_primary_key(admissions_df, \"visit_id\", \"admissions\")\n",
+					"\n",
+					"admissions_df = deduplicate(admissions_df, \"visit_id\", \"admittime\")\n",
+					"\n",
+					"admissions_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")\n",
+					"\n",
+					"#admissions_df.show()"
+				],
+				"execution_count": 42
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- insurance\n",
+					"\n",
+					"insurance_df = add_file_timestamp(insurance_df)\n",
+					"\n",
+					"insurance_df = insurance_df \\\n",
+					"    .withColumnRenamed(\"charges\",\"total_amount\")\n",
+					"\n",
+					"insurance_df = insurance_df.filter(col(\"total_amount\") >= 0)\n",
+					"\n",
+					"insurance_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")\n",
+					"#insurance_df.show()"
+				],
+				"execution_count": 43
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- doctors\n",
+					"doctors_df = add_file_timestamp(doctors_df)\n",
+					"\n",
+					"doctors_df = doctors_df.filter(col(\"active_flag\").isin(\"Y\",\"N\"))\n",
+					"\n",
+					"validate_primary_key(doctors_df, \"doctor_id\", \"doctors\")\n",
+					"\n",
+					"doctors_df = deduplicate(doctors_df, \"doctor_id\", \"joining_date\")\n",
+					"\n",
+					"doctors_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")\n",
+					"\n",
+					"#doctors_df.show()"
+				],
+				"execution_count": 44
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- departments\n",
+					"\n",
+					"departments_df = add_file_timestamp(departments_df)\n",
+					"\n",
+					"departments_df = departments_df.filter(col(\"active_flag\").isin(\"Y\",\"N\"))\n",
+					"\n",
+					"validate_columns(departments_df,[\"department_id\",\"department_name\"],\"departments\")\n",
+					"\n",
+					"validate_primary_key(departments_df, \"department_id\",\"departments\")\n",
+					"\n",
+					"departments_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")\n",
+					"\n",
+					"#departments_df.show()"
+				],
+				"execution_count": 45
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- diagnoses_icd\n",
+					"\n",
+					"diagnosis_df = add_file_timestamp(diagnosis_df)\n",
+					"\n",
+					"diagnosis_df= diagnosis_df.withColumnRenamed(\"hadm_id\",\"visit_id\")\n",
+					"\n",
+					"validate_columns(diagnosis_df,[\"visit_id\", \"icd_code\"],\"diagnoses_icd\")\n",
+					"\n",
+					"diagnosis_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")\n",
+					"\n",
+					"#diagnosis_df.show()"
+				],
+				"execution_count": 46
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# -- d_icd_diagnoses\n",
+					"d_icd_diagnosis_df = add_file_timestamp(d_icd_diagnosis_df)\n",
+					"\n",
+					"validate_columns(d_icd_diagnosis_df,[\"long_title\", \"icd_code\"],\"d_icd_diagnoses\")\n",
+					"\n",
+					"d_icd_diagnosis_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")\n",
+					"\n",
+					"#d_icd_diagnosis_df.show()\n",
+					""
+				],
+				"execution_count": 47
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 5. Read Silver"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"silver_patients_df = spark.read.format(\"delta\").load(silver_path + \"patients/\")\n",
+					"silver_admissions_df = spark.read.format(\"delta\").load(silver_path + \"admissions/\")\n",
+					"silver_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"diagnoses_icd/\")\n",
+					"silver_d_icd_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"d_icd_diagnoses/\")\n",
+					"silver_insurance_df = spark.read.format(\"delta\").load(silver_path + \"insurance/\")\n",
+					"silver_doctors_df = spark.read.format(\"delta\").load(silver_path + \"Doctors/\")\n",
+					"silver_departments_df = spark.read.format(\"delta\").load(silver_path + \"Departments/\")"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### 6. Get Last Processed Timestamp from Silver"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import max, col\n",
+					"\n",
+					"silver_patients_df = spark.read.format(\"delta\").load(silver_path +  \"Patients/\")\n",
+					"\n",
+					"last_ts = silver_df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"\n",
+					"#print(\"Last Processed:\", last_ts)\n",
+					"\n",
+					"new_silver_patients = patients_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_silver_patients.write.format(\"delta\").mode(\"append\").save(silver_path +  \"Patients/\")"
+				],
+				"execution_count": 58
+			}
+		]
+	}
+}
