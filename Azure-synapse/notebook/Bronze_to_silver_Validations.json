@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3e84f471-e622-451b-9b5f-dab1e8065e46"
+				"spark.autotune.trackingId": "90f9f28e-6f6d-44a7-be90-552ea6154803"
 			}
 		},
 		"metadata": {
@@ -55,7 +55,7 @@
 					"silver_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/\"\n",
 					""
 				],
-				"execution_count": 97
+				"execution_count": 1
 			},
 			{
 				"cell_type": "markdown",
@@ -122,7 +122,15 @@
 					"# -- Deduplication\n",
 					"def deduplicate(df, key_col, order_col):\n",
 					"    window = Window.partitionBy(key_col).orderBy(col(order_col).desc())\n",
-					"    return df.withColumn(\"rn\", row_number().over(window)).filter(\"rn = 1\").drop(\"rn\")"
+					"    return df.withColumn(\"rn\", row_number().over(window)).filter(\"rn = 1\").drop(\"rn\")\n",
+					"\n",
+					"# Get last processed timestamp\n",
+					"def get_last_ts_or_none(path):\n",
+					"    try:\n",
+					"        df = spark.read.format(\"delta\").load(path)\n",
+					"        return df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"    except AnalysisException:\n",
+					"        return None"
 				],
 				"execution_count": 99
 			},
@@ -191,7 +199,17 @@
 					"check_not_null(patients_df, \"patient_id\", \"patients\")\n",
 					"validate_primary_key(patients_df, \"patient_id\", \"patients\")\n",
 					"\n",
-					"patients_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Patients/\")\n",
+					"\n",
+					"if last_ts is None:\n",
+					"    new_data = patients_df\n",
+					"else:\n",
+					"    new_data = patients_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")\n",
 					""
 				],
 				"execution_count": 101
@@ -214,7 +232,17 @@
 					"\n",
 					"admissions_df = deduplicate(admissions_df, \"visit_id\", \"admittime\")\n",
 					"\n",
-					"admissions_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Admissions/\")\n",
+					"\n",
+					"if last_ts is None:\n",
+					"    new_data = admissions_df\n",
+					"else:\n",
+					"    new_data = admissions_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")\n",
 					"\n",
 					"#admissions_df.show()"
 				],
@@ -228,12 +256,19 @@
 					"insurance_df = add_file_timestamp(insurance_df)\n",
 					"\n",
 					"insurance_df = insurance_df \\\n",
-					"    .withColumnRenamed(\"charges\",\"total_amount\")\n",
+					"    .withColumnRenamed(\"charges\",\"total_amount\").filter(col(\"total_amount\") >= 0)\n",
 					"\n",
-					"insurance_df = insurance_df.filter(col(\"total_amount\") >= 0)\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Insurance/\")\n",
 					"\n",
-					"insurance_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")\n",
-					"#insurance_df.show()"
+					"if last_ts is None:\n",
+					"    new_data = insurance_df\n",
+					"else:\n",
+					"    new_data = insurance_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")"
 				],
 				"execution_count": 103
 			},
@@ -249,7 +284,17 @@
 					"\n",
 					"doctors_df = deduplicate(doctors_df, \"doctor_id\", \"joining_date\")\n",
 					"\n",
-					"doctors_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Doctors/\")\n",
+					"\n",
+					"if last_ts is None:\n",
+					"    new_data = doctors_df\n",
+					"else:\n",
+					"    new_data = doctors_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")\n",
 					"\n",
 					"#doctors_df.show()"
 				],
@@ -268,7 +313,17 @@
 					"\n",
 					"validate_primary_key(departments_df, \"department_id\",\"departments\")\n",
 					"\n",
-					"departments_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Departments/\")\n",
+					"\n",
+					"if last_ts is None:\n",
+					"    new_data = departments_df\n",
+					"else:\n",
+					"    new_data = departments_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")\n",
 					"\n",
 					"#departments_df.show()"
 				],
@@ -285,7 +340,17 @@
 					"\n",
 					"validate_columns(diagnosis_df,[\"visit_id\", \"icd_code\"],\"diagnoses_icd\")\n",
 					"\n",
-					"diagnosis_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"Diagnoses_icd/\")\n",
+					"\n",
+					"if last_ts is None:\n",
+					"    new_data = diagnosis_df\n",
+					"else:\n",
+					"    new_data = diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")\n",
 					"\n",
 					"#diagnosis_df.show()"
 				],
@@ -299,141 +364,20 @@
 					"\n",
 					"validate_columns(d_icd_diagnosis_df,[\"long_title\", \"icd_code\"],\"d_icd_diagnoses\")\n",
 					"\n",
-					"d_icd_diagnosis_df.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")\n",
+					"last_ts = get_last_ts_or_none(silver_path + \"D_icd_diagnoses/\")\n",
 					"\n",
-					"#d_icd_diagnosis_df.show()\n",
+					"if last_ts is None:\n",
+					"    new_data = d_icd_diagnosis_df\n",
+					"else:\n",
+					"    new_data = d_icd_diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
+					"\n",
+					"new_data = new_data.drop(\"file_path\",\"file_ts_str\")\n",
+					"\n",
+					"if new_data.count() > 0:\n",
+					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")\n",
 					""
 				],
 				"execution_count": 107
-			},
-			{
-				"cell_type": "markdown",
-				"metadata": {
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"#### 5. Read Silver"
-				]
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"silver_patients_df = spark.read.format(\"delta\").load(silver_path + \"Patients/\")\n",
-					"silver_admissions_df = spark.read.format(\"delta\").load(silver_path + \"Admissions/\")\n",
-					"silver_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"Diagnoses_icd/\")\n",
-					"silver_d_icd_diagnosis_df = spark.read.format(\"delta\").load(silver_path + \"D_icd_diagnoses/\")\n",
-					"silver_insurance_df = spark.read.format(\"delta\").load(silver_path + \"Insurance/\")\n",
-					"silver_doctors_df = spark.read.format(\"delta\").load(silver_path + \"Doctors/\")\n",
-					"silver_departments_df = spark.read.format(\"delta\").load(silver_path + \"Departments/\")"
-				],
-				"execution_count": 108
-			},
-			{
-				"cell_type": "markdown",
-				"metadata": {
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
-					}
-				},
-				"source": [
-					"#### 6. Get Last Processed Timestamp from Silver"
-				]
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"from pyspark.sql.functions import max, col\n",
-					"\n",
-					"last_ts = silver_patients_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"#print(\"Last Processed:\", last_ts)\n",
-					"\n",
-					"new_data = patients_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"\n",
-					"new_data.show()\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")"
-				],
-				"execution_count": 118
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"\n",
-					"last_ts = silver_admissions_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = admissions_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Admissions/\")"
-				],
-				"execution_count": 110
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"last_ts = silver_diagnosis_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Diagnoses_icd/\")"
-				],
-				"execution_count": 111
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"last_ts = silver_d_icd_diagnosis_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = d_icd_diagnosis_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")"
-				],
-				"execution_count": 112
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"last_ts = silver_insurance_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = insurance_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")"
-				],
-				"execution_count": 113
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"last_ts = silver_doctors_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = doctors_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Doctors/\")"
-				],
-				"execution_count": 114
-			},
-			{
-				"cell_type": "code",
-				"source": [
-					"last_ts = silver_departments_df.agg(max(\"file_ts\")).collect()[0][0]\n",
-					"\n",
-					"new_data = departments_df.filter(col(\"file_ts\") > last_ts)\n",
-					"\n",
-					"new_data = new_data.drop(\"file_path\", \"file_ts_str\").repartition(4)\n",
-					"new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Departments/\")"
-				],
-				"execution_count": 115
 			}
 		]
 	}
