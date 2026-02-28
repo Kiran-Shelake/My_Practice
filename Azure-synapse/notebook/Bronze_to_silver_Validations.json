@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "40037114-2ccf-4f88-b8ec-b3c0ef2e8d0f"
+				"spark.autotune.trackingId": "3e84f471-e622-451b-9b5f-dab1e8065e46"
 			}
 		},
 		"metadata": {
@@ -53,8 +53,7 @@
 				"source": [
 					"bronze_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/bronze/\"\n",
 					"silver_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/\"\n",
-					"reject_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/reject/\"\n",
-					"audit_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/audit/\""
+					""
 				],
 				"execution_count": 97
 			},
