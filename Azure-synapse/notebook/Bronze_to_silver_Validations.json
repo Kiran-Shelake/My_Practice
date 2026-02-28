@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "d1698c2d-2ead-4647-876f-46108f8b7d72"
+				"spark.autotune.trackingId": "bf8db8ee-b0cc-4f5b-865d-4dc4f6606f1b"
 			}
 		},
 		"metadata": {
@@ -55,7 +55,7 @@
 					"silver_path = \"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/\"\n",
 					""
 				],
-				"execution_count": 1
+				"execution_count": 23
 			},
 			{
 				"cell_type": "markdown",
@@ -82,7 +82,7 @@
 					"departments_df = spark.read.parquet(bronze_path + \"Departments/\")\n",
 					""
 				],
-				"execution_count": 98
+				"execution_count": 24
 			},
 			{
 				"cell_type": "markdown",
@@ -102,6 +102,7 @@
 				"source": [
 					"from pyspark.sql.functions import col, row_number\n",
 					"from pyspark.sql.window import Window\n",
+					"from pyspark.sql.utils import AnalysisException\n",
 					"\n",
 					"# -- Schema validation \n",
 					"def validate_columns(df, expected_cols, table_name):\n",
@@ -128,11 +129,12 @@
 					"def get_last_ts_or_none(path):\n",
 					"    try:\n",
 					"        df = spark.read.format(\"delta\").load(path)\n",
-					"        return df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"        df = df.agg(max(\"file_ts\")).collect()[0][0]\n",
+					"        return df\n",
 					"    except AnalysisException:\n",
 					"        return None"
 				],
-				"execution_count": 99
+				"execution_count": 33
 			},
 			{
 				"cell_type": "markdown",
@@ -169,7 +171,7 @@
 					"    )\n",
 					"    return df"
 				],
-				"execution_count": 100
+				"execution_count": 29
 			},
 			{
 				"cell_type": "markdown",
@@ -187,6 +189,8 @@
 			{
 				"cell_type": "code",
 				"source": [
+					"from pyspark.sql.functions import max, col\n",
+					"\n",
 					"# -- Patients\n",
 					"patients_df = add_file_timestamp(patients_df)\n",
 					"\n",
@@ -212,7 +216,7 @@
 					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Patients/\")\n",
 					""
 				],
-				"execution_count": 101
+				"execution_count": 35
 			},
 			{
 				"cell_type": "code",
@@ -246,7 +250,7 @@
 					"\n",
 					"#admissions_df.show()"
 				],
-				"execution_count": 102
+				"execution_count": 36
 			},
 			{
 				"cell_type": "code",
@@ -270,7 +274,7 @@
 					"if new_data.count() > 0:\n",
 					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"Insurance/\")"
 				],
-				"execution_count": 103
+				"execution_count": 37
 			},
 			{
 				"cell_type": "code",
@@ -298,7 +302,7 @@
 					"\n",
 					"#doctors_df.show()"
 				],
-				"execution_count": 104
+				"execution_count": 38
 			},
 			{
 				"cell_type": "code",
@@ -327,7 +331,7 @@
 					"\n",
 					"#departments_df.show()"
 				],
-				"execution_count": 105
+				"execution_count": 39
 			},
 			{
 				"cell_type": "code",
@@ -354,7 +358,7 @@
 					"\n",
 					"#diagnosis_df.show()"
 				],
-				"execution_count": 106
+				"execution_count": 40
 			},
 			{
 				"cell_type": "code",
@@ -377,7 +381,7 @@
 					"    new_data.write.format(\"delta\").mode(\"append\").save(silver_path + \"D_icd_diagnoses/\")\n",
 					""
 				],
-				"execution_count": 107
+				"execution_count": 41
 			},
 			{
 				"cell_type": "markdown",
