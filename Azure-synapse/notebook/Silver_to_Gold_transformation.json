@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "2a12cac9-ea6d-40f9-b2cc-de7989870c85"
+				"spark.autotune.trackingId": "f4e3c32b-796c-420d-98ec-dde59b621956"
 			}
 		},
 		"metadata": {
@@ -25,7 +25,7 @@
 			"enableDebugMode": false,
 			"kernelspec": {
 				"name": "synapse_pyspark",
-				"display_name": "python"
+				"display_name": "Synapse PySpark"
 			},
 			"language_info": {
 				"name": "python"
@@ -64,15 +64,17 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"patients_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Patients/\")\n",
-					"admissions_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Admissions/\")\n",
-					"diagnosis_map_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Diagnoses_icd/\")\n",
-					"diagnosis_ref_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/D_icd_diagnoses/\")\n",
-					"insurance_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Insurance/\")\n",
-					"doctors_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Doctors/\")\n",
-					"departments_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Departments/\")"
+					"patients_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Patients/\")\n",
+					"admissions_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Admissions/\")\n",
+					"diagnosis_map_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Diagnoses_icd/\")\n",
+					"diagnosis_ref_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/D_icd_diagnoses/\")\n",
+					"insurance_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Insurance/\")\n",
+					"doctors_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Doctors/\")\n",
+					"departments_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Departments/\")\n",
+					"\n",
+					"patients_df.printSchema()"
 				],
-				"execution_count": null
+				"execution_count": 4
 			}
 		]
 	}
