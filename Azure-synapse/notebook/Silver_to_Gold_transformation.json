@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "95164389-2b3e-402e-b35c-dbfc972452ca"
+				"spark.autotune.trackingId": "b07d27b7-8688-46a2-be87-04e048ac7a29"
 			}
 		},
 		"metadata": {
@@ -395,7 +395,6 @@
 					"        \"visit_id\",\n",
 					"        \"patient_sk\",\n",
 					"        \"doctor_sk\",\n",
-					"        \"department_sk\",\n",
 					"        \"diagnosis_sk\",\n",
 					"        \"date_sk\",\n",
 					"        \"total_amount\",\n",
@@ -405,7 +404,7 @@
 					"    ) \\\n",
 					"    .withColumn(\"visit_count\", lit(1))"
 				],
-				"execution_count": 48
+				"execution_count": 51
 			},
 			{
 				"cell_type": "markdown",
@@ -442,7 +441,7 @@
 					"else:\n",
 					"    fact_final.write.format(\"delta\").save(fact_path)"
 				],
-				"execution_count": null
+				"execution_count": 52
 			},
 			{
 				"cell_type": "markdown",
@@ -470,7 +469,7 @@
 					"WHERE table_name = 'Fact_Patient_Visit'\n",
 					"\"\"\")"
 				],
-				"execution_count": null
+				"execution_count": 53
 			},
 			{
 				"cell_type": "markdown",
