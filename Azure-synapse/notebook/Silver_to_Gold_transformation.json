@@ -1,0 +1,79 @@
+{
+	"name": "Silver_to_Gold_transformation",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "projsparkpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "2a12cac9-ea6d-40f9-b2cc-de7989870c85"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "python"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/49a5e15e-626c-4e4c-8752-d06f2a37c581/resourceGroups/rg_azure_practice/providers/Microsoft.Synapse/workspaces/ws-azuresynapse/bigDataPools/projsparkpool",
+				"name": "projsparkpool",
+				"type": "Spark",
+				"endpoint": "https://ws-azuresynapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/projsparkpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"#### Read Silver Tables"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"patients_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Patients/\")\n",
+					"admissions_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Admissions/\")\n",
+					"diagnosis_map_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Diagnoses_icd/\")\n",
+					"diagnosis_ref_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/D_icd_diagnoses/\")\n",
+					"insurance_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Insurance/\")\n",
+					"doctors_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Doctors/\")\n",
+					"departments_df = spark.read.format(\"delta\").load(\"/con-healthcare-proj/silver/Departments/\")"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
