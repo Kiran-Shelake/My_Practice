@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "05893dc4-f052-48a3-b086-8dafb296f173"
+				"spark.autotune.trackingId": "1fef3c05-5f37-4644-97d5-a0eb23a9aa92"
 			}
 		},
 		"metadata": {
@@ -75,7 +75,7 @@
 					"        [\"table_name\", \"last_processed_ts\"]\n",
 					"    ).write.format(\"delta\").save(control_path)"
 				],
-				"execution_count": 49
+				"execution_count": 16
 			},
 			{
 				"cell_type": "markdown",
@@ -99,7 +99,7 @@
 					"                     .select(\"last_processed_ts\") \\\n",
 					"                     .collect()[0][0]"
 				],
-				"execution_count": 38
+				"execution_count": 17
 			},
 			{
 				"cell_type": "markdown",
@@ -126,7 +126,7 @@
 					"departments_df = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/silver/Departments/\")\n",
 					""
 				],
-				"execution_count": 39
+				"execution_count": 18
 			},
 			{
 				"cell_type": "markdown",
@@ -147,7 +147,7 @@
 					"admissions_incremental = admissions_df \\\n",
 					"    .filter(col(\"admittime\") > last_ts)"
 				],
-				"execution_count": 40
+				"execution_count": 19
 			},
 			{
 				"cell_type": "markdown",
@@ -177,7 +177,7 @@
 					")\n",
 					""
 				],
-				"execution_count": 41
+				"execution_count": 20
 			},
 			{
 				"cell_type": "markdown",
@@ -203,7 +203,7 @@
 					"    .withColumn(\"self_pay_amount\", col(\"total_amount\")*0.3) \\\n",
 					"    .withColumn(\"medicine_cost\", (rand()*2000).cast(\"double\"))"
 				],
-				"execution_count": 42
+				"execution_count": 21
 			},
 			{
 				"cell_type": "markdown",
@@ -241,7 +241,7 @@
 					"\n",
 					"dim_date.write.format(\"delta\").mode(\"overwrite\").save(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Date/\")"
 				],
-				"execution_count": 43
+				"execution_count": 22
 			},
 			{
 				"cell_type": "markdown",
@@ -273,7 +273,7 @@
 					"\n",
 					"dim_patient.write.format(\"delta\").mode(\"overwrite\").save(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Patient/\")"
 				],
-				"execution_count": 44
+				"execution_count": 23
 			},
 			{
 				"cell_type": "markdown",
@@ -298,7 +298,7 @@
 					"\n",
 					"dim_doctor.write.format(\"delta\").mode(\"overwrite\").save(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Doctor/\")"
 				],
-				"execution_count": 45
+				"execution_count": 24
 			},
 			{
 				"cell_type": "markdown",
@@ -316,11 +316,12 @@
 			{
 				"cell_type": "code",
 				"source": [
-					"window_spec = Window.orderBy(\"department_id\")\n",
+					"from pyspark.sql.functions import monotonically_increasing_id\n",
 					"\n",
 					"dim_department = departments_df \\\n",
-					"    .select(\"department_id\", \"department_name\") \\\n",
-					"    .withColumn(\"department_sk\", row_number().over(window_spec))\n",
+					"    .select(\"department_id\", \"department_name\", \"department_head\") \\\n",
+					"    .distinct() \\\n",
+					"    .withColumn(\"department_sk\", monotonically_increasing_id())\n",
 					"\n",
 					"dim_department.write.format(\"delta\").mode(\"overwrite\").save(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Department/\")"
 				],
@@ -359,7 +360,7 @@
 					"\n",
 					"dim_diagnosis.write.format(\"delta\").mode(\"overwrite\").save(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Diagnosis/\")"
 				],
-				"execution_count": 47
+				"execution_count": 36
 			},
 			{
 				"cell_type": "markdown",
@@ -381,6 +382,7 @@
 					"dim_doctor = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold//Dim_Doctor/\")\n",
 					"dim_diagnosis = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Diagnosis/\")\n",
 					"dim_date = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Date/\")\n",
+					"dim_department = spark.read.format(\"delta\").load(\"abfss://con-healthcare-proj@saazurepractice12.dfs.core.windows.net/gold/Dim_Department\")\n",
 					"\n",
 					"fact_final = fact_base \\\n",
 					"    .join(dim_patient.filter(col(\"is_current\")==\"Y\"), \"patient_id\") \\\n",
@@ -497,6 +499,16 @@
 					"fact_final.groupBy(\"visit_id\").count().filter(\"count>1\").count()"
 				],
 				"execution_count": 54
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"display(fact_final.columns)"
+				],
+				"execution_count": 55
 			}
 		]
 	}
